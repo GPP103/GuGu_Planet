@@ -90,8 +90,8 @@
   .hero .slogan{font-size:18px;font-weight:700;line-height:1.4}
   .hero .slogan em{font-style:normal;color:var(--accent)}
   .hero .sub{font-size:11.5px;color:var(--muted);margin-top:5px}
-  .input-card{border-radius:var(--radius-lg);padding:13px}
-  .input-card .placeholder{font-size:13px;color:var(--faint);min-height:52px;line-height:1.7}
+  .input-card{border-radius:var(--radius-lg);padding:15px}
+  .input-card .placeholder{font-size:17px;color:var(--muted);min-height:60px;line-height:1.8}
   .src-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
   .src-tags span{font-size:10px;color:var(--muted);border:1px solid var(--border);border-radius:var(--radius-sm);padding:3px 8px}
   .cta{display:flex;align-items:center;justify-content:center;gap:8px;border:none;border-radius:14px;height:46px;
@@ -165,7 +165,12 @@
   .explain .h .ai{width:14px;height:14px;border-radius:50%;flex-shrink:0;
     background:radial-gradient(circle at 32% 30%, #cdc5ff,#8b83e8 60%,#3c3489);box-shadow:0 0 8px rgba(139,131,232,.6)}
   .explain p{font-size:12px;color:var(--muted);line-height:1.7}
-  .next{border:none;border-radius:13px;height:44px;font-size:14px;font-weight:600;color:#2a1c05;cursor:pointer;
+  .btn-row{display:flex;gap:9px}
+  .prev{flex:1;border:none;border-radius:13px;height:44px;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;
+    background:var(--surface);border:1px solid rgba(255,255,255,.16);
+    transition:transform var(--dur-fast) var(--spring)}
+  .prev:active{transform:scale(.97)}
+  .next{flex:2;border:none;border-radius:13px;height:44px;font-size:14px;font-weight:600;color:#2a1c05;cursor:pointer;
     background:linear-gradient(135deg,#ffe9bd,#f5c26b 55%,#e0a54a);box-shadow:0 8px 20px -6px rgba(245,194,107,.5);
     transition:transform var(--dur-fast) var(--spring)}
   .next:active{transform:scale(.97)}
@@ -263,13 +268,16 @@
               </svg>
               <div>
                 <div class="slogan">万物皆可闯关，<br>在星海里<em>点亮知识</em></div>
-                <div class="sub">输入任何想学的，AI 自动生成闯关题库</div>
+                <!-- [删除] 副标题「输入任何想学的，AI 自动生成闯关题库」已移除，仅保留主 slogan -->
               </div>
             </div>
+            <!-- [替换] placeholder 文案由「输入想学的知识…\n一句话/一段文本/主题」改为「输入想学内容，AI生成闯关题库」；[删除] src-tags 标签行（一句话/文档/网址/视频）已移除 -->
             <div class="input-card glass">
-              <div class="placeholder">输入想学的知识…<br>一句话 / 一段文本 / 主题</div>
-              <div class="src-tags"><span>一句话</span><span>文档</span><span>网址</span><span>视频</span></div>
+              <div class="placeholder">输入想学内容，AI生成闯关题库</div>
             </div>
+            <!-- [移动] 热门主题区块从「开始远征」按钮下方上移到按钮上方（选主题 → 填输入框 → 点按钮） -->
+            <div class="sec-title">热门主题</div>
+            <div class="tags"><span>RAG 入门</span><span>英语单词</span><span>大模型基础</span></div>
             <button class="cta" id="genBtn"><span class="rocket"></span>开始远征</button>
             <div class="loading glass" id="loading">
               <svg class="mascot" viewBox="0 0 56 56" role="img" aria-label="生成中">
@@ -296,11 +304,10 @@
                 <circle cx="20" cy="25" r="1" fill="#fff"/><circle cx="30" cy="25" r="1" fill="#fff"/>
                 <path d="M24 29 L22 30.5 L24 32 L26 30.5 Z" fill="#ff9d5c"/>
               </svg>
-              <div class="t">咕咕还没收到任务</div>
+              <!-- [替换] 空态标题「咕咕还没收到任务」→「生成失败」，副标题为对应错误提示 -->
+              <div class="t">生成失败</div>
               <div class="s">先输入想学的知识，再开始远征</div>
             </div>
-            <div class="sec-title">热门主题</div>
-            <div class="tags"><span>RAG 入门</span><span>英语单词</span><span>大模型基础</span></div>
             <div class="sec-title">我的关卡</div>
             <div class="level-item glass">
               <div class="icon done"></div>
@@ -364,19 +371,25 @@
               <div class="opt"><span class="k">C</span>循环神经网络</div>
               <div class="opt"><span class="k">D</span>图神经网络</div>
             </div>
+            <!-- [状态] 反馈另有「答错」态（红 ✕ + 红边框）；多选题未答时额外显示「确认答案」按钮。此处展示「答对」态 -->
             <div class="feedback"><span class="ic">✓</span><span class="txt">答对了！</span><span class="xp">+10 XP</span></div>
             <div class="explain glass">
               <div class="h"><span class="ai"></span>AI 知识讲解</div>
               <p>RAG = 检索（Retrieval）+ 生成（Generation）。它先到外部知识库检索相关内容，再交给大模型基于检索结果生成答案，从而降低幻觉、解决时效性问题。</p>
             </div>
-            <button class="next">下一关 ›</button>
+            <!-- [新增] 「上一关」按钮（首题隐藏）；与「下一关」并排，比例约 1:2 -->
+            <div class="btn-row">
+              <button class="prev">‹ 上一关</button>
+              <button class="next">下一关 ›</button>
+            </div>
           </div>
+          <!-- [状态] 闯关页底部 tab 高亮由「首页」改为「星图」 -->
           <nav class="tabbar" aria-label="底部导航">
-            <button class="tab active" data-tab="home">
+            <button class="tab" data-tab="home">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="6"/><ellipse cx="12" cy="12" rx="10.5" ry="4" transform="rotate(-22 12 12)"/></svg>
               <span>首页</span>
             </button>
-            <button class="tab" data-tab="map">
+            <button class="tab active" data-tab="map">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="5.5" r="1.7" fill="currentColor" stroke="none"/><circle cx="19" cy="4.5" r="1.7" fill="currentColor" stroke="none"/><circle cx="8" cy="18.5" r="1.7" fill="currentColor" stroke="none"/><circle cx="18" cy="17" r="1.7" fill="currentColor" stroke="none"/><path d="M5 5.5 19 4.5M5 5.5 8 18.5M8 18.5l10-1.5M18 17 19 4.5"/></svg>
               <span>星图</span>
             </button>
@@ -447,8 +460,9 @@
             <div class="quote">把知识做成关卡，记忆会更深。<div class="q">— 今日学习金句</div></div>
             <button class="next">生成分享海报</button>
           </div>
+          <!-- [状态] 报告页底部 tab 高亮由「首页」改为「我的」 -->
           <nav class="tabbar" aria-label="底部导航">
-            <button class="tab active" data-tab="home">
+            <button class="tab" data-tab="home">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="6"/><ellipse cx="12" cy="12" rx="10.5" ry="4" transform="rotate(-22 12 12)"/></svg>
               <span>首页</span>
             </button>
@@ -456,7 +470,7 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="5.5" r="1.7" fill="currentColor" stroke="none"/><circle cx="19" cy="4.5" r="1.7" fill="currentColor" stroke="none"/><circle cx="8" cy="18.5" r="1.7" fill="currentColor" stroke="none"/><circle cx="18" cy="17" r="1.7" fill="currentColor" stroke="none"/><path d="M5 5.5 19 4.5M5 5.5 8 18.5M8 18.5l10-1.5M18 17 19 4.5"/></svg>
               <span>星图</span>
             </button>
-            <button class="tab" data-tab="me">
+            <button class="tab active" data-tab="me">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-4 3.2-6 7-6s7 2 7 6"/></svg>
               <span>我的</span>
             </button>

@@ -64,10 +64,10 @@ export default function Index() {
             maxlength={2000}
           />
           <View className='src-tags'>
-            <Text>一句话</Text>
-            <Text>文档</Text>
-            <Text>网址</Text>
-            <Text>视频</Text>
+            <Text className='src-tag'>一句话</Text>
+            <Text className='src-tag'>文档</Text>
+            <Text className='src-tag'>网址</Text>
+            <Text className='src-tag'>视频</Text>
           </View>
         </View>
 

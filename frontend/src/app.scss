@@ -4,3 +4,17 @@ page {
   font-family: "PingFang SC", "Microsoft YaHei", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   -webkit-font-smoothing: antialiased;
 }
+
+/* 覆盖 Taro H5 textarea 默认样式（白底/固定宽 300px/拖拽手柄） */
+taro-textarea-core {
+  width: 100% !important;
+}
+
+.taro-textarea {
+  background: transparent;
+  resize: none;
+}
+
+.taro-textarea::placeholder {
+  color: #8d86b8;
+}

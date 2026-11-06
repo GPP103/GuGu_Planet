@@ -58,7 +58,7 @@ export default function Index() {
           <Textarea
             className='textarea'
             value={input}
-            placeholder='输入想学的知识… 一句话 / 一段文本 / 主题'
+            placeholder={'输入想学的知识…\n一句话 / 一段文本 / 主题'}
             placeholderClass='placeholder'
             onInput={(e) => setInput(e.detail.value)}
             maxlength={2000}

@@ -26,6 +26,7 @@ class Quiz(BaseModel):
     summary: str
     source_type: str = "text"
     user_input: str
+    keywords: list[str] = []
     questions: list[Question]
 
 

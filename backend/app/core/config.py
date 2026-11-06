@@ -32,5 +32,28 @@ class Settings(BaseSettings):
     default_question_count: int = 5
     max_input_chars: int = 2000
 
+    # 微信小程序
+    wechat_appid: str = ""
+    wechat_secret: str = ""
+
+    # MySQL
+    mysql_host: str = "127.0.0.1"
+    mysql_port: int = 3306
+    mysql_user: str = "root"
+    mysql_password: str = ""
+    mysql_database: str = "gugu_star"
+
+    # JWT
+    jwt_secret: str = ""
+    jwt_algorithm: str = "HS256"
+    jwt_expire_minutes: int = 10080
+
+    @property
+    def database_url(self) -> str:
+        return (
+            f"mysql+pymysql://{self.mysql_user}:{self.mysql_password}"
+            f"@{self.mysql_host}:{self.mysql_port}/{self.mysql_database}?charset=utf8mb4"
+        )
+
 
 settings = Settings()

@@ -43,3 +43,21 @@ export function clearAll() {
   Taro.removeStorageSync(REPORT_KEY)
   Taro.removeStorageSync(TOPIC_KEY)
 }
+
+const TOKEN_KEY = 'gugu_token'
+
+export function setToken(token: string) {
+  Taro.setStorageSync(TOKEN_KEY, token)
+}
+
+export function getToken(): string {
+  try {
+    return (Taro.getStorageSync(TOKEN_KEY) as string) || ''
+  } catch {
+    return ''
+  }
+}
+
+export function clearToken() {
+  Taro.removeStorageSync(TOKEN_KEY)
+}

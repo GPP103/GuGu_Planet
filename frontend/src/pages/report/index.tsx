@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import Taro from '@tarojs/taro'
 import { Text, View } from '@tarojs/components'
 import Mascot from '../../components/Mascot'
-import TabBar from '../../components/TabBar'
 import { getQuiz, getReport } from '../../utils/store'
 import type { Report } from '../../types'
 import './index.scss'
@@ -35,7 +34,6 @@ export default function ReportPage() {
             </View>
           </View>
         </View>
-        <TabBar active='me' />
       </View>
     )
   }
@@ -116,8 +114,10 @@ export default function ReportPage() {
         >
           生成分享海报
         </View>
+        <View className='home-link' onClick={() => Taro.redirectTo({ url: '/pages/records/index' })}>
+          查看答题记录
+        </View>
       </View>
-      <TabBar active='me' />
     </View>
   )
 }

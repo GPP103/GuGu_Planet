@@ -42,4 +42,48 @@ export interface Report {
   share_quote: string
 }
 
-export type TabKey = 'home' | 'map' | 'me'
+export type TabKey = 'home' | 'records' | 'me'
+
+export interface UserProfile {
+  id: number
+  nickname: string
+  avatar_url: string | null
+  total_answered: number
+  total_correct: number
+  current_streak: number
+  accuracy: number
+}
+
+export interface RecordItem {
+  type: string
+  stem: string
+  options: Option[]
+  answer: string[]
+  user_answer: string[]
+  is_correct: boolean
+  explanation: string
+  knowledge_point: string
+}
+
+export interface HistoryItem {
+  id: number
+  topic: string
+  question_count: number
+  answered_count: number
+  correct_count: number
+  accuracy: number
+  created_at: string
+  items: RecordItem[]
+}
+
+export interface WrongItem {
+  id: number
+  topic: string
+  type: string
+  stem: string
+  options: Option[]
+  answer: string[]
+  explanation: string
+  knowledge_point: string
+  user_answer: string[]
+}

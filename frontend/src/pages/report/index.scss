@@ -237,6 +237,19 @@
   }
 }
 
+.home-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26rpx;
+  color: #b6aedb;
+  padding: 12rpx 0;
+
+  &:active {
+    color: #f5c26b;
+  }
+}
+
 .empty {
   display: flex;
   flex-direction: column;

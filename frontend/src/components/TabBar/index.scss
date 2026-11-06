@@ -79,48 +79,23 @@
   }
 }
 
-/* 星图：星座（点 + 连线） */
-.map {
+/* 记录：文档列表 */
+.records {
   position: relative;
   width: 44rpx;
   height: 44rpx;
 
-  &::before {
-    content: '';
+  .line {
     position: absolute;
-    width: 30rpx;
-    height: 2rpx;
-    background: currentColor;
-    top: 18rpx;
-    left: 8rpx;
-    transform: rotate(28deg);
-    opacity: 0.8;
-  }
-
-  &::after {
-    content: '';
-    position: absolute;
-    width: 24rpx;
-    height: 2rpx;
-    background: currentColor;
-    top: 30rpx;
-    left: 12rpx;
-    transform: rotate(-30deg);
-    opacity: 0.8;
-  }
-
-  .dot {
-    position: absolute;
-    width: 7rpx;
-    height: 7rpx;
-    border-radius: 50%;
+    left: 7rpx;
+    height: 4rpx;
+    border-radius: 2rpx;
     background: currentColor;
   }
 
-  .d1 { top: 7rpx; left: 8rpx; }
-  .d2 { top: 20rpx; right: 6rpx; }
-  .d3 { bottom: 8rpx; left: 9rpx; }
-  .d4 { bottom: 8rpx; right: 8rpx; }
+  .l1 { top: 11rpx; width: 30rpx; }
+  .l2 { top: 20rpx; width: 30rpx; }
+  .l3 { top: 29rpx; width: 20rpx; }
 }
 
 /* 我的：人像 */

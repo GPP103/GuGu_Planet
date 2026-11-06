@@ -9,18 +9,9 @@ interface TabBarProps {
 
 const TABS: { key: TabKey; label: string; page: string }[] = [
   { key: 'home', label: '首页', page: '/pages/index/index' },
-  { key: 'map', label: '星图', page: '/pages/quiz/index' },
-  { key: 'me', label: '我的', page: '/pages/report/index' }
+  { key: 'records', label: '记录', page: '/pages/records/index' },
+  { key: 'me', label: '我的', page: '/pages/profile/index' }
 ]
-
-function currentRoute(): string {
-  try {
-    const pages = Taro.getCurrentPages()
-    return pages[pages.length - 1]?.route || ''
-  } catch {
-    return ''
-  }
-}
 
 export default function TabBar({ active }: TabBarProps) {
   const handleTap = (page: string, key: TabKey) => {
@@ -43,12 +34,11 @@ export default function TabBar({ active }: TabBarProps) {
                 <View className='ring' />
               </View>
             )}
-            {tab.key === 'map' && (
-              <View className='map'>
-                <View className='dot d1' />
-                <View className='dot d2' />
-                <View className='dot d3' />
-                <View className='dot d4' />
+            {tab.key === 'records' && (
+              <View className='records'>
+                <View className='line l1' />
+                <View className='line l2' />
+                <View className='line l3' />
               </View>
             )}
             {tab.key === 'me' && (

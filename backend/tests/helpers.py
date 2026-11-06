@@ -22,6 +22,7 @@ def make_llm_quiz():
     return LLMQuiz(
         title="RAG 入门",
         summary="围绕 RAG 基础概念与应用场景生成的题库",
+        keywords=["RAG", "检索增强生成"],
         questions=[
             LLMQuestion(
                 id="q1",

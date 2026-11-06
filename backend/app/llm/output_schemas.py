@@ -25,6 +25,7 @@ class LLMQuestion(BaseModel):
 class LLMQuiz(BaseModel):
     title: str = Field(description="学习主题标题")
     summary: str = Field(description="题库主题摘要")
+    keywords: list[str] = Field(default_factory=list, description="主题关键字列表，用于缓存匹配")
     questions: list[LLMQuestion] = Field(description="题目列表")
 
 

@@ -2,7 +2,9 @@ export default defineAppConfig({
   pages: [
     'pages/index/index',
     'pages/quiz/index',
-    'pages/report/index'
+    'pages/report/index',
+    'pages/profile/index',
+    'pages/records/index'
   ],
   window: {
     backgroundTextStyle: 'dark',

@@ -1,20 +1,24 @@
 """题库生成接口。"""
 from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
 
+from app.db import get_db
 from app.models.common import ApiResponse
 from app.models.quiz import Quiz, QuizGenerateRequest
 from app.services.quiz_service import QuizService
 
 router = APIRouter()
 
-_quiz_service: QuizService | None = None
+_quiz_chain = None
 
 
-def get_quiz_service() -> QuizService:
-    global _quiz_service
-    if _quiz_service is None:
-        _quiz_service = QuizService()
-    return _quiz_service
+def get_quiz_service(db: Session = Depends(get_db)) -> QuizService:
+    global _quiz_chain
+    if _quiz_chain is None:
+        from app.llm.quiz_chain import build_quiz_chain
+
+        _quiz_chain = build_quiz_chain()
+    return QuizService(quiz_chain=_quiz_chain, db=db)
 
 
 @router.post("/quiz/generate")

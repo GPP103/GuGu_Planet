@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import Taro from '@tarojs/taro'
 import { Text, View } from '@tarojs/components'
 import Mascot from '../../components/Mascot'
-import TabBar from '../../components/TabBar'
-import { generateReport } from '../../utils/api'
+import { generateReport, submitRecord } from '../../utils/api'
+import { ensureLogin } from '../../utils/auth'
 import { getQuiz, saveReport } from '../../utils/store'
 import type { AnswerRecord, Question, Quiz } from '../../types'
 import './index.scss'
@@ -97,6 +97,9 @@ export default function QuizPage() {
     if (!quiz || submitting) return
     setSubmitting(true)
     try {
+      // 先静默登录（仅小程序端，H5 直接跳过），再提交完整答题记录；失败不阻断主流程
+      await ensureLogin().catch(() => null)
+      await submitRecord(quiz.title, quiz.questions, recordsRef.current).catch(() => {})
       const report = await generateReport(
         quiz.quiz_id,
         quiz.title,
@@ -128,7 +131,6 @@ export default function QuizPage() {
             </View>
           </View>
         </View>
-        <TabBar active='map' />
       </View>
     )
   }
@@ -225,7 +227,6 @@ export default function QuizPage() {
           </>
         )}
       </View>
-      <TabBar active='map' />
     </View>
   )
 }

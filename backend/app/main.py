@@ -1,4 +1,6 @@
 """FastAPI 应用入口。"""
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
@@ -7,8 +9,19 @@ from fastapi.responses import JSONResponse
 from app.api.v1.routes import api_router
 from app.core.config import settings
 from app.core.exceptions import AppError
+from app.db import init_db
 
-app = FastAPI(title=settings.app_name, version=settings.app_version)
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    try:
+        init_db()
+    except Exception:  # noqa: BLE001 建表失败不影响应用启动（如数据库未就绪）
+        pass
+    yield
+
+
+app = FastAPI(title=settings.app_name, version=settings.app_version, lifespan=lifespan)
 
 # 开发阶段放开跨域，便于 h5 前端本地联调
 app.add_middleware(

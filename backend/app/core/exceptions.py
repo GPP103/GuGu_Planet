@@ -23,3 +23,18 @@ class QuizGenerationError(AppError):
 class ReportGenerationError(AppError):
     def __init__(self, message: str = "报告生成失败，请稍后重试"):
         super().__init__(5002, message)
+
+
+class AuthError(AppError):
+    def __init__(self, message: str = "未登录或登录已过期"):
+        super().__init__(4010, message)
+
+
+class LoginCodeInvalidError(AppError):
+    def __init__(self, message: str = "登录凭证无效，请重试"):
+        super().__init__(4011, message)
+
+
+class WechatLoginError(AppError):
+    def __init__(self, message: str = "微信登录失败，请稍后重试"):
+        super().__init__(4012, message)

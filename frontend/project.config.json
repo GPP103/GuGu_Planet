@@ -2,7 +2,7 @@
   "miniprogramRoot": "dist/",
   "projectname": "gugu-miniapp",
   "description": "咕咕星球 GuGu AI 闯关学习小程序",
-  "appid": "touristappid",
+  "appid": "wxcf3dfa8a74bd7f05",
   "setting": {
     "urlCheck": false,
     "es6": false,
@@ -32,5 +32,6 @@
     "ignore": [],
     "include": []
   },
-  "editorSetting": {}
+  "editorSetting": {},
+  "isGameTourist": false
 }

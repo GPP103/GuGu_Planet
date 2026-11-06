@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>咕咕星球 GuGu · 核心流程原型（含底部导航）</title>
+<style>
+  :root{
+    --bg:#08081f;--bg-deep:#06061a;
+    --surface:rgba(255,255,255,.06);--surface-strong:rgba(255,255,255,.11);
+    --border:rgba(255,255,255,.13);
+    --text:#f5f3ff;--muted:#b6aedb;--faint:#8d86b8;
+    --accent:#f5c26b;--accent-soft:#ffe3a3;--accent-deep:#c88a2a;
+    --secondary:#8b83e8;--secondary-deep:#3c3489;
+    --success:#5fd39a;--danger:#ff8f8f;
+    --radius-sm:6px;--radius-md:10px;--radius-lg:16px;--radius-xl:34px;
+    --spring:cubic-bezier(0.34,1.56,0.64,1);--ease-out:cubic-bezier(0.16,1,0.3,1);
+    --dur-fast:200ms;--dur-base:400ms;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    background:
+      radial-gradient(1200px 600px at 15% -10%, #1c1846 0%, transparent 60%),
+      radial-gradient(1000px 700px at 110% 20%, #201a52 0%, transparent 55%),
+      radial-gradient(900px 600px at 50% 120%, #2a2160 0%, transparent 60%),var(--bg);
+    color:var(--text);min-height:100vh;padding:32px 24px 48px;-webkit-font-smoothing:antialiased}
+  .doc-head{max-width:1160px;margin:0 auto 26px;text-align:center}
+  .doc-head h1{font-size:22px;font-weight:700;letter-spacing:.5px}
+  .doc-head h1 span{color:var(--accent)}
+  .doc-head p{color:var(--muted);font-size:13px;margin-top:8px}
+  .doc-head .chip{display:inline-block;margin-top:13px;font-size:12px;color:var(--accent-soft);
+    border:1px solid rgba(245,194,107,.35);border-radius:999px;padding:5px 14px;background:rgba(245,194,107,.08)}
+
+  .board{max-width:1160px;margin:0 auto;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px}
+  @media (max-width:1020px){.board{grid-template-columns:1fr;max-width:420px}}
+  @media (min-width:680px) and (max-width:1020px){.board{grid-template-columns:repeat(2,minmax(0,1fr));max-width:900px}}
+  .stage{display:flex;flex-direction:column;align-items:center;gap:13px;animation:rise .5s var(--ease-out) both}
+  .stage:nth-child(2){animation-delay:100px}.stage:nth-child(3){animation-delay:200px}
+  @keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+  .stage-label{font-size:13px;color:var(--muted);letter-spacing:2px}
+  .stage-label b{color:var(--accent);font-weight:700}
+
+  .phone{width:100%;max-width:340px;aspect-ratio:9/19.2;border-radius:44px;padding:12px;
+    background:linear-gradient(180deg,#23204a,#0d0c28);
+    box-shadow:0 30px 60px -20px rgba(0,0,0,.75), inset 0 0 0 2px rgba(255,255,255,.06);position:relative}
+  .phone::before{content:"";position:absolute;top:22px;left:50%;transform:translateX(-50%);
+    width:100px;height:24px;border-radius:16px;background:var(--bg-deep);z-index:5}
+  .screen{position:relative;width:100%;height:100%;border-radius:var(--radius-xl);overflow:hidden;
+    background:
+      radial-gradient(220px 220px at 85% 12%, rgba(245,194,107,.16) 0%, transparent 55%),
+      radial-gradient(260px 260px at 12% 80%, rgba(139,131,232,.18) 0%, transparent 55%),
+      linear-gradient(180deg,#141238 0%,#0b0a26 100%);
+    display:flex;flex-direction:column}
+  .stars{position:absolute;inset:0;background:
+    radial-gradient(1.5px 1.5px at 12% 22%, #fff 50%, transparent 51%),
+    radial-gradient(1px 1px at 30% 12%, #fff 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 48% 8%, #ffe3a3 50%, transparent 51%),
+    radial-gradient(1px 1px at 66% 20%, #fff 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 82% 30%, #fff 50%, transparent 51%),
+    radial-gradient(1px 1px at 92% 14%, #ffe3a3 50%, transparent 51%),
+    radial-gradient(1px 1px at 8% 60%, #fff 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 20% 78%, #fff 50%, transparent 51%),
+    radial-gradient(1px 1px at 38% 88%, #ffe3a3 50%, transparent 51%),
+    radial-gradient(1px 1px at 70% 72%, #fff 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 88% 60%, #fff 50%, transparent 51%);
+    pointer-events:none}
+  .planet{position:absolute;border-radius:50%;
+    background:radial-gradient(circle at 32% 30%, #ffe9bd, #f5c26b 42%, #b8742a 70%, #6b4416 100%);
+    box-shadow:0 0 30px 4px rgba(245,194,107,.35), inset -6px -8px 16px rgba(0,0,0,.35)}
+  .status{position:relative;z-index:2;display:flex;justify-content:space-between;align-items:center;
+    padding:16px 20px 8px;font-size:11px;color:var(--muted)}
+  .status .clock{font-weight:600;color:var(--text)}
+  .glass{background:var(--surface);border:1px solid var(--border);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+  .scroll{position:relative;z-index:2;flex:1;overflow:hidden;display:flex;flex-direction:column;
+    padding:0 16px 66px 16px;gap:12px}
+
+  .nav{display:flex;align-items:center;justify-content:space-between}
+  .logo{display:flex;align-items:center;gap:7px;font-size:14px;font-weight:600}
+  .gmark{width:16px;height:16px;border-radius:50%;position:relative;flex-shrink:0;
+    background:radial-gradient(circle at 32% 30%, #ffe9bd, #f5c26b 60%, #c88a2a);
+    display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#2a1c05;
+    box-shadow:0 0 10px rgba(245,194,107,.7)}
+  .gmark::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:1px solid rgba(245,194,107,.5)}
+  .avatar{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--secondary),var(--secondary-deep));
+    border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--text)}
+
+  .hero{display:flex;align-items:center;gap:8px;margin-top:4px}
+  .hero .mascot{width:60px;height:60px;flex-shrink:0;animation:float 5s ease-in-out infinite}
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+  .hero .slogan{font-size:18px;font-weight:700;line-height:1.4}
+  .hero .slogan em{font-style:normal;color:var(--accent)}
+  .hero .sub{font-size:11.5px;color:var(--muted);margin-top:5px}
+  .input-card{border-radius:var(--radius-lg);padding:13px}
+  .input-card .placeholder{font-size:13px;color:var(--faint);min-height:52px;line-height:1.7}
+  .src-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
+  .src-tags span{font-size:10px;color:var(--muted);border:1px solid var(--border);border-radius:var(--radius-sm);padding:3px 8px}
+  .cta{display:flex;align-items:center;justify-content:center;gap:8px;border:none;border-radius:14px;height:46px;
+    font-size:15px;font-weight:700;color:#2a1c05;cursor:pointer;width:100%;
+    background:linear-gradient(135deg,#ffe9bd,#f5c26b 55%,#e0a54a);
+    box-shadow:0 10px 24px -8px rgba(245,194,107,.55);
+    transition:transform var(--dur-fast) var(--spring)}
+  .cta:active{transform:scale(.96)}
+  .cta .rocket{width:16px;height:16px;border-radius:50% 50% 50% 4px;background:#2a1c05;position:relative;transform:rotate(-45deg)}
+  .loading{display:none;flex-direction:column;align-items:center;gap:8px;border-radius:14px;padding:16px}
+  .loading.show{display:flex}
+  .loading .mascot{width:52px;height:52px;animation:float 1.4s ease-in-out infinite}
+  .loading .t{font-size:13px;font-weight:600;color:var(--accent-soft)}
+  .loading .elapsed{font-size:11px;color:var(--faint);font-variant-numeric:tabular-nums}
+  .empty{display:none;flex-direction:column;align-items:center;gap:7px;border-radius:14px;padding:14px;
+    background:rgba(245,194,107,.08);border:1px dashed rgba(245,194,107,.35)}
+  .empty.show{display:flex}
+  .empty .mascot{width:44px;height:44px}
+  .empty .t{font-size:12px;color:var(--accent-soft);font-weight:600}
+  .empty .s{font-size:10.5px;color:var(--muted)}
+  .sec-title{font-size:11px;color:var(--faint);letter-spacing:2px;text-transform:uppercase}
+  .tags{display:flex;gap:8px;flex-wrap:wrap}
+  .tags span{font-size:11px;color:var(--accent-soft);border:1px solid rgba(245,194,107,.3);border-radius:999px;
+    padding:6px 12px;background:rgba(245,194,107,.08)}
+  .level-item{display:flex;align-items:center;gap:10px;border-radius:14px;padding:11px 12px}
+  .level-item .icon{width:26px;height:26px;border-radius:50%;flex-shrink:0;
+    background:radial-gradient(circle at 32% 30%, #cdc5ff, #8b83e8 60%, #3c3489);box-shadow:0 0 12px rgba(139,131,232,.5)}
+  .level-item .icon.done{background:radial-gradient(circle at 32% 30%, #ffe9bd, #f5c26b 60%, #c88a2a);box-shadow:0 0 12px rgba(245,194,107,.55)}
+  .level-item .meta{flex:1;min-width:0}
+  .level-item .meta .t{font-size:12.5px;font-weight:600}
+  .level-item .meta .s{font-size:10.5px;color:var(--muted);margin-top:2px}
+  .level-item .arrow{color:var(--faint);font-size:14px}
+
+  .progress{display:flex;align-items:center;gap:10px}
+  .back{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    background:var(--surface);border:1px solid var(--border);font-size:13px;color:var(--text)}
+  .progress .stage-t{font-size:13px;font-weight:600;flex:1}
+  .coin{display:flex;align-items:center;gap:4px;font-size:12px;font-weight:600;color:var(--accent);font-variant-numeric:tabular-nums}
+  .coin .c{width:14px;height:14px;border-radius:50%;background:radial-gradient(circle at 32% 30%, #ffe9bd,#f5c26b 60%,#c88a2a);
+    box-shadow:0 0 8px rgba(245,194,107,.6);position:relative}
+  .coin .c::after{content:"";position:absolute;inset:4px;border-radius:2px;background:#a8761f}
+  .xp-wrap{margin-top:2px}
+  .xp-row{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-bottom:5px}
+  .xp-bar{height:8px;border-radius:6px;background:rgba(255,255,255,.1);overflow:hidden}
+  .xp-fill{height:100%;width:62%;border-radius:6px;background:linear-gradient(90deg,var(--secondary),var(--accent))}
+  .orbit{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
+  .orbit .node{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.18)}
+  .orbit .node.done{background:var(--accent);box-shadow:0 0 8px rgba(245,194,107,.7)}
+  .orbit .node.cur{width:14px;height:14px;background:var(--secondary);border:2px solid var(--accent);box-shadow:0 0 10px rgba(139,131,232,.8)}
+  .qcard{border-radius:var(--radius-lg);padding:15px}
+  .qtype{display:inline-block;font-size:10px;color:var(--accent);border:1px solid rgba(245,194,107,.35);
+    border-radius:var(--radius-sm);padding:3px 8px;background:rgba(245,194,107,.1);margin-bottom:9px}
+  .qstem{font-size:15px;font-weight:600;line-height:1.55}
+  .opts{display:flex;flex-direction:column;gap:9px}
+  .opt{display:flex;align-items:center;gap:10px;border-radius:12px;padding:12px;cursor:pointer;
+    background:var(--surface);border:1px solid var(--border);font-size:13px;
+    transition:transform var(--dur-fast) var(--spring),border-color var(--dur-fast)}
+  .opt:active{transform:scale(.98)}
+  .opt .k{width:22px;height:22px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+    font-size:11px;font-weight:600;border:1px solid var(--border);color:var(--muted)}
+  .opt.correct{border-color:rgba(95,211,154,.6);background:rgba(95,211,154,.12)}
+  .opt.correct .k{background:var(--success);color:#0a2a1c;border-color:transparent}
+  .feedback{display:flex;align-items:center;gap:9px;border-radius:12px;padding:11px 13px;
+    background:rgba(95,211,154,.14);border:1px solid rgba(95,211,154,.4)}
+  .feedback .ic{width:20px;height:20px;border-radius:50%;background:var(--success);color:#0a2a1c;
+    display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
+  .feedback .txt{font-size:12.5px;font-weight:600;color:var(--success)}
+  .feedback .xp{margin-left:auto;font-size:11px;font-weight:700;color:var(--accent)}
+  .explain{border-radius:14px;padding:13px}
+  .explain .h{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--accent);font-weight:600;margin-bottom:6px}
+  .explain .h .ai{width:14px;height:14px;border-radius:50%;flex-shrink:0;
+    background:radial-gradient(circle at 32% 30%, #cdc5ff,#8b83e8 60%,#3c3489);box-shadow:0 0 8px rgba(139,131,232,.6)}
+  .explain p{font-size:12px;color:var(--muted);line-height:1.7}
+  .next{border:none;border-radius:13px;height:44px;font-size:14px;font-weight:600;color:#2a1c05;cursor:pointer;
+    background:linear-gradient(135deg,#ffe9bd,#f5c26b 55%,#e0a54a);box-shadow:0 8px 20px -6px rgba(245,194,107,.5);
+    transition:transform var(--dur-fast) var(--spring)}
+  .next:active{transform:scale(.97)}
+
+  .ring-wrap{display:flex;flex-direction:column;align-items:center;margin-top:2px}
+  .ring{position:relative;width:120px;height:120px}
+  .ring svg{transform:rotate(-90deg)}
+  .ring .pct{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .ring .pct b{font-size:30px;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums}
+  .ring .pct span{font-size:10px;color:var(--muted)}
+  .celebrate{display:flex;align-items:center;gap:6px;margin-top:6px}
+  .celebrate .mascot{width:34px;height:34px;flex-shrink:0}
+  .celebrate .msg{font-size:11.5px;color:var(--accent-soft);font-weight:600}
+  .sum-card{border-radius:14px;padding:13px}
+  .sum-card .h{font-size:11px;color:var(--accent);font-weight:600;margin-bottom:7px}
+  .sum-card .line{display:flex;gap:8px;font-size:12px;color:var(--text);line-height:1.7;margin-bottom:4px}
+  .sum-card .line i{font-style:normal;color:var(--accent);flex-shrink:0}
+  .pill-row{display:flex;gap:8px;flex-wrap:wrap}
+  .pill{font-size:11px;border-radius:999px;padding:5px 11px}
+  .pill.good{color:var(--success);border:1px solid rgba(95,211,154,.4);background:rgba(95,211,154,.1)}
+  .pill.bad{color:var(--danger);border:1px solid rgba(255,143,143,.4);background:rgba(255,143,143,.1)}
+  .quote{border-radius:14px;padding:12px 14px;font-size:12px;color:var(--accent-soft);line-height:1.7;
+    background:linear-gradient(135deg,rgba(245,194,107,.12),rgba(139,131,232,.1));border:1px solid rgba(245,194,107,.3)}
+  .quote .q{color:var(--faint);font-size:10px;margin-top:6px;letter-spacing:2px}
+
+  /* ===== 底部导航栏 tab bar ===== */
+  .tabbar{position:absolute;left:0;right:0;bottom:0;z-index:10;
+    display:flex;align-items:stretch;
+    background:rgba(10,9,30,.88);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+    border-top:1px solid rgba(255,255,255,.08);
+    padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px))}
+  .tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
+    background:none;border:none;cursor:pointer;padding:5px 0;color:var(--muted);font-size:10px;
+    transition:color var(--dur-fast) var(--ease-out)}
+  .tab svg{width:22px;height:22px;transition:transform var(--dur-fast) var(--spring),filter var(--dur-fast)}
+  .tab.active{color:var(--accent)}
+  .tab.active svg{filter:drop-shadow(0 0 6px rgba(245,194,107,.75));transform:translateY(-2px)}
+  .tab.active span{font-weight:700}
+  .tab .badge{position:relative}
+  .tab .badge::after{content:"";position:absolute;top:-2px;right:-6px;width:6px;height:6px;border-radius:50%;
+    background:var(--danger);box-shadow:0 0 6px rgba(255,143,143,.8)}
+
+  @media (prefers-reduced-motion:reduce){
+    .stage,.hero .mascot,.loading .mascot{animation:none}
+    .cta,.opt,.next,.tab svg{transition:none}
+  }
+</style>
+</head>
+<body>
+  <header class="doc-head">
+    <h1>咕咕星球 <span>GuGu</span> · AI 智能题库生成与知识问答</h1>
+    <p>深空星海 × AI 原生 · 含底部导航栏（首页 / 星图 / 排行榜 / 我的）</p>
+    <span class="chip">首页 → 闯关 → 报告，三屏闭环 + 底部 tab bar</span>
+  </header>
+
+  <svg width="0" height="0" style="position:absolute">
+    <defs>
+      <linearGradient id="bodyG" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#ffe9bd"/><stop offset=".5" stop-color="#f5c26b"/><stop offset="1" stop-color="#c88a2a"/>
+      </linearGradient>
+      <linearGradient id="wingG" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#f5c26b"/><stop offset="1" stop-color="#c88a2a"/>
+      </linearGradient>
+    </defs>
+  </svg>
+
+  <main class="board">
+
+    <!-- ===== 首页 ===== -->
+    <section class="stage">
+      <div class="stage-label">01 · <b>首页</b></div>
+      <div class="phone">
+        <div class="screen">
+          <div class="stars"></div>
+          <div class="planet" style="width:60px;height:60px;top:64px;right:-16px;opacity:.85"></div>
+          <div class="status"><span class="clock">9:41</span><span>▂▄▆</span></div>
+          <div class="scroll">
+            <div class="nav">
+              <div class="logo"><span class="gmark">G</span>咕咕星球</div>
+              <div class="avatar">Gu</div>
+            </div>
+            <div class="hero">
+              <svg class="mascot" viewBox="0 0 64 64" role="img" aria-label="吉祥物咕咕">
+                <ellipse cx="32" cy="10" rx="20" ry="5" fill="none" stroke="rgba(245,194,107,.4)" stroke-width="1.2" transform="rotate(-12 32 10)"/>
+                <circle cx="32" cy="7" r="5" fill="url(#bodyG)"/>
+                <circle cx="32" cy="38" r="22" fill="url(#bodyG)"/>
+                <ellipse cx="32" cy="44" rx="13" ry="9" fill="#fff4dc"/>
+                <ellipse cx="11" cy="38" rx="9" ry="6" fill="url(#wingG)" transform="rotate(-30 11 38)"/>
+                <ellipse cx="53" cy="38" rx="9" ry="6" fill="url(#wingG)" transform="rotate(30 53 38)"/>
+                <circle cx="25" cy="32" r="4" fill="#2a1c05"/><circle cx="39" cy="32" r="4" fill="#2a1c05"/>
+                <circle cx="26.5" cy="30.5" r="1.4" fill="#fff"/><circle cx="40.5" cy="30.5" r="1.4" fill="#fff"/>
+                <path d="M32 36 L28 38.5 L32 41 L36 38.5 Z" fill="#ff9d5c"/>
+                <circle cx="20" cy="42" r="3" fill="#ff9d8a" opacity=".5"/><circle cx="44" cy="42" r="3" fill="#ff9d8a" opacity=".5"/>
+                <path d="M32 16 Q35 12 40 13" fill="none" stroke="#c88a2a" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+              <div>
+                <div class="slogan">万物皆可闯关，<br>在星海里<em>点亮知识</em></div>
+                <div class="sub">输入任何想学的，AI 自动生成闯关题库</div>
+              </div>
+            </div>
+            <div class="input-card glass">
+              <div class="placeholder">输入想学的知识…<br>一句话 / 一段文本 / 主题</div>
+              <div class="src-tags"><span>一句话</span><span>文档</span><span>网址</span><span>视频</span></div>
+            </div>
+            <button class="cta" id="genBtn"><span class="rocket"></span>开始远征</button>
+            <div class="loading glass" id="loading">
+              <svg class="mascot" viewBox="0 0 56 56" role="img" aria-label="生成中">
+                <circle cx="28" cy="6" r="3" fill="#fff" opacity=".8"/>
+                <circle cx="46" cy="16" r="2" fill="#fff" opacity=".6"/>
+                <circle cx="10" cy="16" r="2" fill="#fff" opacity=".6"/>
+                <circle cx="28" cy="34" r="19" fill="url(#bodyG)"/>
+                <ellipse cx="28" cy="40" rx="11" ry="7" fill="#fff4dc"/>
+                <ellipse cx="11" cy="34" rx="8" ry="5" fill="url(#wingG)" transform="rotate(-20 11 34)"/>
+                <ellipse cx="45" cy="34" rx="8" ry="5" fill="url(#wingG)" transform="rotate(20 45 34)"/>
+                <circle cx="22" cy="29" r="3.5" fill="#2a1c05"/><circle cx="34" cy="29" r="3.5" fill="#2a1c05"/>
+                <circle cx="23.3" cy="27.7" r="1.2" fill="#fff"/><circle cx="35.3" cy="27.7" r="1.2" fill="#fff"/>
+                <path d="M28 33 L25 35 L28 37 L31 35 Z" fill="#ff9d5c"/>
+              </svg>
+              <div class="t">正在生成题库…</div>
+              <div class="elapsed" id="elapsed">耗时 0.0s</div>
+            </div>
+            <div class="empty" id="empty">
+              <svg class="mascot" viewBox="0 0 48 48" role="img" aria-label="空状态提示">
+                <text x="36" y="12" font-size="14" font-weight="700" fill="#f5c26b" text-anchor="middle">?</text>
+                <circle cx="24" cy="30" r="15" fill="url(#bodyG)"/>
+                <ellipse cx="24" cy="34" rx="9" ry="6" fill="#fff4dc"/>
+                <circle cx="19" cy="26" r="3" fill="#2a1c05"/><circle cx="29" cy="26" r="3" fill="#2a1c05"/>
+                <circle cx="20" cy="25" r="1" fill="#fff"/><circle cx="30" cy="25" r="1" fill="#fff"/>
+                <path d="M24 29 L22 30.5 L24 32 L26 30.5 Z" fill="#ff9d5c"/>
+              </svg>
+              <div class="t">咕咕还没收到任务</div>
+              <div class="s">先输入想学的知识，再开始远征</div>
+            </div>
+            <div class="sec-title">热门主题</div>
+            <div class="tags"><span>RAG 入门</span><span>英语单词</span><span>大模型基础</span></div>
+            <div class="sec-title">我的关卡</div>
+            <div class="level-item glass">
+              <div class="icon done"></div>
+              <div class="meta"><div class="t">星图 · 大模型基础</div><div class="s">5 题 · 已点亮</div></div>
+              <div class="arrow">›</div>
+            </div>
+            <div class="level-item glass">
+              <div class="icon"></div>
+              <div class="meta"><div class="t">星图 · 网络原理</div><div class="s">5 题 · 待探索</div></div>
+              <div class="arrow">›</div>
+            </div>
+          </div>
+          <!-- 底部导航 -->
+          <nav class="tabbar" aria-label="底部导航">
+            <button class="tab active" data-tab="home">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="6"/><ellipse cx="12" cy="12" rx="10.5" ry="4" transform="rotate(-22 12 12)"/></svg>
+              <span>首页</span>
+            </button>
+            <button class="tab" data-tab="map">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="5.5" r="1.7" fill="currentColor" stroke="none"/><circle cx="19" cy="4.5" r="1.7" fill="currentColor" stroke="none"/><circle cx="8" cy="18.5" r="1.7" fill="currentColor" stroke="none"/><circle cx="18" cy="17" r="1.7" fill="currentColor" stroke="none"/><path d="M5 5.5 19 4.5M5 5.5 8 18.5M8 18.5l10-1.5M18 17 19 4.5"/></svg>
+              <span>星图</span>
+            </button>
+            <button class="tab" data-tab="rank">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8v4.5a4 4 0 0 1-8 0z"/><path d="M8 6H5a1 1 0 0 0-1 1c0 2 1.4 3.2 3 3.2"/><path d="M16 6h3a1 1 0 0 1 1 1c0 2-1.4 3.2-3 3.2"/><path d="M12 12.5V16"/><path d="M9.5 20h5"/><path d="M10.5 16.5h3"/></svg>
+              <span>排行榜</span>
+            </button>
+            <button class="tab" data-tab="me">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-4 3.2-6 7-6s7 2 7 6"/></svg>
+              <span>我的</span>
+            </button>
+          </nav>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== 闯关页 ===== -->
+    <section class="stage">
+      <div class="stage-label">02 · <b>闯关页</b></div>
+      <div class="phone">
+        <div class="screen">
+          <div class="stars"></div>
+          <div class="planet" style="width:42px;height:42px;top:92px;right:14px;opacity:.55"></div>
+          <div class="status"><span class="clock">9:42</span><span>▂▄▆</span></div>
+          <div class="scroll">
+            <div class="progress">
+              <div class="back">‹</div>
+              <div class="stage-t">第 2 / 5 关</div>
+              <div class="coin"><span class="c"></span>1,280</div>
+            </div>
+            <div class="xp-wrap">
+              <div class="xp-row"><span>远征经验</span><span>LV.6 · 620 / 1000</span></div>
+              <div class="xp-bar"><div class="xp-fill"></div></div>
+            </div>
+            <div class="orbit">
+              <div class="node done"></div><div class="node cur"></div>
+              <div class="node"></div><div class="node"></div><div class="node"></div>
+            </div>
+            <div class="qcard glass">
+              <span class="qtype">单选题</span>
+              <div class="qstem">RAG（检索增强生成）的核心思想是？</div>
+            </div>
+            <div class="opts">
+              <div class="opt correct"><span class="k">A</span>检索增强生成</div>
+              <div class="opt"><span class="k">B</span>生成式对抗网络</div>
+              <div class="opt"><span class="k">C</span>循环神经网络</div>
+              <div class="opt"><span class="k">D</span>图神经网络</div>
+            </div>
+            <div class="feedback"><span class="ic">✓</span><span class="txt">答对了！</span><span class="xp">+10 XP</span></div>
+            <div class="explain glass">
+              <div class="h"><span class="ai"></span>AI 知识讲解</div>
+              <p>RAG = 检索（Retrieval）+ 生成（Generation）。它先到外部知识库检索相关内容，再交给大模型基于检索结果生成答案，从而降低幻觉、解决时效性问题。</p>
+            </div>
+            <button class="next">下一关 ›</button>
+          </div>
+          <nav class="tabbar" aria-label="底部导航">
+            <button class="tab active" data-tab="home">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="6"/><ellipse cx="12" cy="12" rx="10.5" ry="4" transform="rotate(-22 12 12)"/></svg>
+              <span>首页</span>
+            </button>
+            <button class="tab" data-tab="map">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="5.5" r="1.7" fill="currentColor" stroke="none"/><circle cx="19" cy="4.5" r="1.7" fill="currentColor" stroke="none"/><circle cx="8" cy="18.5" r="1.7" fill="currentColor" stroke="none"/><circle cx="18" cy="17" r="1.7" fill="currentColor" stroke="none"/><path d="M5 5.5 19 4.5M5 5.5 8 18.5M8 18.5l10-1.5M18 17 19 4.5"/></svg>
+              <span>星图</span>
+            </button>
+            <button class="tab" data-tab="rank">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8v4.5a4 4 0 0 1-8 0z"/><path d="M8 6H5a1 1 0 0 0-1 1c0 2 1.4 3.2 3 3.2"/><path d="M16 6h3a1 1 0 0 1 1 1c0 2-1.4 3.2-3 3.2"/><path d="M12 12.5V16"/><path d="M9.5 20h5"/><path d="M10.5 16.5h3"/></svg>
+              <span>排行榜</span>
+            </button>
+            <button class="tab" data-tab="me">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-4 3.2-6 7-6s7 2 7 6"/></svg>
+              <span>我的</span>
+            </button>
+          </nav>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== 报告页 ===== -->
+    <section class="stage">
+      <div class="stage-label">03 · <b>报告页</b></div>
+      <div class="phone">
+        <div class="screen">
+          <div class="stars"></div>
+          <div class="planet" style="width:56px;height:56px;top:86px;right:-14px;opacity:.7"></div>
+          <div class="status"><span class="clock">9:43</span><span>▂▄▆</span></div>
+          <div class="scroll">
+            <div class="progress">
+              <div class="back">‹</div>
+              <div class="stage-t">远征报告</div>
+              <div class="coin"><span class="c"></span>+50</div>
+            </div>
+            <div class="ring-wrap">
+              <div class="ring">
+                <svg width="120" height="120" viewBox="0 0 120 120">
+                  <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="9"/>
+                  <circle cx="60" cy="60" r="50" fill="none" stroke="url(#ringG)" stroke-width="9"
+                    stroke-linecap="round" stroke-dasharray="251.3" stroke-dashoffset="50.3"/>
+                  <defs><linearGradient id="ringG" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stop-color="#8b83e8"/><stop offset="1" stop-color="#f5c26b"/></linearGradient></defs>
+                </svg>
+                <div class="pct"><b>80%</b><span>正确率</span></div>
+              </div>
+              <div class="celebrate">
+                <svg class="mascot" viewBox="0 0 34 34" role="img" aria-label="通关庆祝">
+                  <circle cx="26" cy="8" r="3.5" fill="#f5c26b"/><circle cx="26" cy="8" r="5" fill="none" stroke="rgba(245,194,107,.5)" stroke-width="1"/>
+                  <circle cx="17" cy="21" r="12" fill="url(#bodyG)"/>
+                  <ellipse cx="17" cy="24" rx="7" ry="5" fill="#fff4dc"/>
+                  <ellipse cx="6" cy="19" rx="6" ry="4" fill="url(#wingG)" transform="rotate(-50 6 19)"/>
+                  <ellipse cx="28" cy="19" rx="6" ry="4" fill="url(#wingG)" transform="rotate(50 28 19)"/>
+                  <circle cx="13" cy="17" r="2.2" fill="#2a1c05"/><circle cx="21" cy="17" r="2.2" fill="#2a1c05"/>
+                  <circle cx="13.8" cy="16.2" r=".8" fill="#fff"/><circle cx="21.8" cy="16.2" r=".8" fill="#fff"/>
+                  <path d="M17 19.5 L14.5 21 L17 22.5 L19.5 21 Z" fill="#ff9d5c"/>
+                </svg>
+                <div class="msg">咕咕为你点亮了 4 颗星！</div>
+              </div>
+            </div>
+            <div class="sum-card glass">
+              <div class="h">三句知识总结</div>
+              <div class="line"><i>✦</i>RAG = 检索 + 生成，先查后答</div>
+              <div class="line"><i>✦</i>用外部知识降低幻觉与时效问题</div>
+              <div class="line"><i>✦</i>比传统搜索更懂语义、更会表达</div>
+            </div>
+            <div class="sec-title">掌握 / 薄弱</div>
+            <div class="pill-row">
+              <span class="pill good">✓ RAG 定义</span>
+              <span class="pill good">✓ 检索流程</span>
+              <span class="pill bad">✕ 与搜索的边界</span>
+            </div>
+            <div class="sec-title">复习建议</div>
+            <div class="explain glass">
+              <p>重点回顾「RAG 与传统搜索引擎的差异」，建议明天开启一次「旧识重温」宝藏关。</p>
+            </div>
+            <div class="quote">把知识做成关卡，记忆会更深。<div class="q">— 今日学习金句</div></div>
+            <button class="next">生成分享海报</button>
+          </div>
+          <nav class="tabbar" aria-label="底部导航">
+            <button class="tab active" data-tab="home">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="6"/><ellipse cx="12" cy="12" rx="10.5" ry="4" transform="rotate(-22 12 12)"/></svg>
+              <span>首页</span>
+            </button>
+            <button class="tab" data-tab="map">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="5.5" r="1.7" fill="currentColor" stroke="none"/><circle cx="19" cy="4.5" r="1.7" fill="currentColor" stroke="none"/><circle cx="8" cy="18.5" r="1.7" fill="currentColor" stroke="none"/><circle cx="18" cy="17" r="1.7" fill="currentColor" stroke="none"/><path d="M5 5.5 19 4.5M5 5.5 8 18.5M8 18.5l10-1.5M18 17 19 4.5"/></svg>
+              <span>星图</span>
+            </button>
+            <button class="tab" data-tab="rank">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8v4.5a4 4 0 0 1-8 0z"/><path d="M8 6H5a1 1 0 0 0-1 1c0 2 1.4 3.2 3 3.2"/><path d="M16 6h3a1 1 0 0 1 1 1c0 2-1.4 3.2-3 3.2"/><path d="M12 12.5V16"/><path d="M9.5 20h5"/><path d="M10.5 16.5h3"/></svg>
+              <span>排行榜</span>
+            </button>
+            <button class="tab" data-tab="me">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-4 3.2-6 7-6s7 2 7 6"/></svg>
+              <span>我的</span>
+            </button>
+          </nav>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // 首页 stateful 生成按钮
+    const genBtn = document.getElementById('genBtn');
+    const loading = document.getElementById('loading');
+    const empty = document.getElementById('empty');
+    const elapsed = document.getElementById('elapsed');
+    let timer = null;
+    genBtn.addEventListener('click', () => {
+      genBtn.style.display = 'none';
+      loading.classList.add('show');
+      const start = performance.now();
+      timer = setInterval(() => {
+        elapsed.textContent = '耗时 ' + ((performance.now() - start) / 1000).toFixed(1) + 's';
+      }, 100);
+      setTimeout(() => {
+        clearInterval(timer);
+        loading.classList.remove('show');
+        genBtn.style.display = '';
+        const old = genBtn.innerHTML;
+        genBtn.innerHTML = '✓ 题库生成成功，进入闯关 ›';
+        genBtn.style.background = 'linear-gradient(135deg,#c9f2dd,#5fd39a 55%,#3fc08a)';
+        setTimeout(() => { genBtn.innerHTML = old; genBtn.style.background = ''; }, 1600);
+      }, 2400);
+    });
+    // 双击头像切空状态
+    document.querySelector('.avatar').addEventListener('dblclick', () => empty.classList.toggle('show'));
+    // 底部导航：点击切换激活态（演示）
+    document.querySelectorAll('.tabbar').forEach(bar => {
+      bar.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          bar.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+        });
+      });
+    });
+  </script>
+</body>
+</html>

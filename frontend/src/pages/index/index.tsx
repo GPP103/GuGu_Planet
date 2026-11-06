@@ -58,17 +58,28 @@ export default function Index() {
           <Textarea
             className='textarea'
             value={input}
-            placeholder={'输入想学的知识…\n一句话 / 一段文本 / 主题'}
+            placeholder='我想快速搞懂什么是 RAG，它和传统搜索有什么区别？最好通过几个问题帮助我记住重点。'
             placeholderClass='placeholder'
             onInput={(e) => setInput(e.detail.value)}
             maxlength={2000}
           />
-          <View className='src-tags'>
-            <Text className='src-tag'>一句话</Text>
-            <Text className='src-tag'>文档</Text>
-            <Text className='src-tag'>网址</Text>
-            <Text className='src-tag'>视频</Text>
-          </View>
+          <View className='input-tip'>输入一句话、一段文字，AI 会自动整理成一组可闯关的题目</View>
+        </View>
+
+        <View className='sec-title'>热门主题</View>
+        <View className='tags'>
+          {HOT_TAGS.map((t) => (
+            <Text
+              key={t}
+              className='tag'
+              onClick={() => {
+                setInput(t)
+                setError('')
+              }}
+            >
+              {t}
+            </Text>
+          ))}
         </View>
 
         {!loading && (
@@ -93,22 +104,6 @@ export default function Index() {
             <View className='s'>{error}</View>
           </View>
         )}
-
-        <View className='sec-title'>热门主题</View>
-        <View className='tags'>
-          {HOT_TAGS.map((t) => (
-            <Text
-              key={t}
-              className='tag'
-              onClick={() => {
-                setInput(t)
-                setError('')
-              }}
-            >
-              {t}
-            </Text>
-          ))}
-        </View>
 
         <View className='sec-title'>我的关卡</View>
         <View className='level-item glass'>

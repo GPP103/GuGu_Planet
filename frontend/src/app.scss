@@ -13,6 +13,9 @@ taro-textarea-core {
 .taro-textarea {
   background: transparent;
   resize: none;
+  font: inherit;
+  color: inherit;
+  line-height: inherit;
 }
 
 .taro-textarea::placeholder {

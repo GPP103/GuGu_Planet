@@ -50,7 +50,6 @@ export default function Index() {
               <View>万物皆可闯关，</View>
               <View>在星海里<Text className='em'>点亮知识</Text></View>
             </View>
-            <View className='sub'>输入任何想学的，AI 自动生成闯关题库</View>
           </View>
         </View>
 
@@ -58,7 +57,7 @@ export default function Index() {
           <Textarea
             className='textarea'
             value={input}
-            placeholder='输入一句话、一段文字，AI 会自动整理成一组闯关的题目'
+            placeholder='输入想学内容，AI生成闯关题库'
             placeholderClass='placeholder'
             onInput={(e) => setInput(e.detail.value)}
             maxlength={2000}

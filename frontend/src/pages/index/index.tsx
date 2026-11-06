@@ -47,7 +47,8 @@ export default function Index() {
           <Mascot variant='hero' />
           <View className='hero-text'>
             <View className='slogan'>
-              万物皆可闯关，{'\n'}在星海里<Text className='em'>点亮知识</Text>
+              <View>万物皆可闯关，</View>
+              <View>在星海里<Text className='em'>点亮知识</Text></View>
             </View>
             <View className='sub'>输入任何想学的，AI 自动生成闯关题库</View>
           </View>

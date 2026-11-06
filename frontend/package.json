@@ -31,8 +31,8 @@
     "@tarojs/runtime": "4.3.2",
     "@tarojs/shared": "4.3.2",
     "@tarojs/taro": "4.3.2",
-    "react": "^18.0.0",
-    "react-dom": "^18.0.0"
+    "react": "18.2.0",
+    "react-dom": "18.2.0"
   },
   "devDependencies": {
     "@babel/core": "^7.24.4",

@@ -22,7 +22,13 @@ export default defineConfig(async (merge) => {
       options: {}
     },
     framework: 'react',
-    compiler: 'webpack5',
+    compiler: {
+      type: 'webpack5',
+      prebundle: {
+        enable: true,
+        exclude: ['@tarojs/react', '@tarojs/plugin-framework-react']
+      }
+    },
     cache: {
       enable: false
     },

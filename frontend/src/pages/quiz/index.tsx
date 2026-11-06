@@ -43,12 +43,15 @@ export default function QuizPage() {
   const submit = (sel: string[]) => {
     if (!question) return
     const correct = sameAnswer(sel, question.answer)
-    recordsRef.current.push({
+    const record = {
       question_id: question.id,
       selected_answers: sel,
       is_correct: correct,
       duration_ms: Date.now() - startRef.current
-    })
+    }
+    // 回退重答时按题目去重，保留最后一次作答
+    recordsRef.current = recordsRef.current.filter((r) => r.question_id !== question.id)
+    recordsRef.current.push(record)
     setAnswered(true)
   }
 
@@ -73,6 +76,15 @@ export default function QuizPage() {
       startRef.current = Date.now()
     } else {
       await finish()
+    }
+  }
+
+  const prev = () => {
+    if (idx > 0) {
+      setIdx(idx - 1)
+      setSelected([])
+      setAnswered(false)
+      startRef.current = Date.now()
     }
   }
 
@@ -195,8 +207,15 @@ export default function QuizPage() {
               </View>
               <Text className='p'>{question.explanation}</Text>
             </View>
-            <View className='next' onClick={next}>
-              {idx + 1 < total ? '下一关 ›' : submitting ? '生成中…' : '生成报告'}
+            <View className='btn-row'>
+              {idx > 0 && (
+                <View className='prev' onClick={prev}>
+                  ‹ 上一关
+                </View>
+              )}
+              <View className='next' onClick={next}>
+                {idx + 1 < total ? '下一关 ›' : submitting ? '生成中…' : '生成报告'}
+              </View>
             </View>
           </>
         )}

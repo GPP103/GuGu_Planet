@@ -24,6 +24,7 @@ export default function QuizPage() {
   const [idx, setIdx] = useState(0)
   const [selected, setSelected] = useState<string[]>([])
   const [answered, setAnswered] = useState(false)
+  const [answers, setAnswers] = useState<Record<string, { selected: string[]; answered: boolean }>>({})
   const [submitting, setSubmitting] = useState(false)
   const recordsRef = useRef<AnswerRecord[]>([])
   const startRef = useRef(0)
@@ -53,6 +54,7 @@ export default function QuizPage() {
     recordsRef.current = recordsRef.current.filter((r) => r.question_id !== question.id)
     recordsRef.current.push(record)
     setAnswered(true)
+    setAnswers((prev) => ({ ...prev, [question.id]: { selected: sel, answered: true } }))
   }
 
   const tapOption = (key: string) => {
@@ -68,12 +70,18 @@ export default function QuizPage() {
     }
   }
 
+  const switchTo = (newIdx: number) => {
+    setIdx(newIdx)
+    const q = quiz?.questions[newIdx]
+    const a = q ? answers[q.id] : undefined
+    setSelected(a ? a.selected : [])
+    setAnswered(a ? a.answered : false)
+    startRef.current = Date.now()
+  }
+
   const next = async () => {
     if (idx + 1 < total) {
-      setIdx(idx + 1)
-      setSelected([])
-      setAnswered(false)
-      startRef.current = Date.now()
+      switchTo(idx + 1)
     } else {
       await finish()
     }
@@ -81,10 +89,7 @@ export default function QuizPage() {
 
   const prev = () => {
     if (idx > 0) {
-      setIdx(idx - 1)
-      setSelected([])
-      setAnswered(false)
-      startRef.current = Date.now()
+      switchTo(idx - 1)
     }
   }
 

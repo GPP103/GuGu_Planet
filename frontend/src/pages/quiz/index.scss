@@ -341,8 +341,7 @@
 }
 
 .prev {
-  flex-shrink: 0;
-  min-width: 160rpx;
+  flex: 1;
   border-radius: 26rpx;
   height: 88rpx;
   display: flex;
@@ -361,7 +360,7 @@
 }
 
 .next {
-  flex: 1;
+  flex: 2;
   border-radius: 26rpx;
   height: 88rpx;
   display: flex;

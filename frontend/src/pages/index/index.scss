@@ -70,7 +70,8 @@
 
 .textarea {
   width: 100%;
-  min-height: 104rpx;
+  height: 160rpx;
+  box-sizing: border-box;
   font-size: 26rpx;
   color: #f5f3ff;
   line-height: 1.7;
@@ -88,8 +89,8 @@
 
   Text {
     font-size: 20rpx;
-    color: #b6aedb;
-    border: 1px solid rgba(255, 255, 255, 0.13);
+    color: #d6cff0;
+    border: 1px solid rgba(255, 255, 255, 0.22);
     border-radius: 12rpx;
     padding: 6rpx 16rpx;
   }

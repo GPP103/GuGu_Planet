@@ -58,12 +58,11 @@ export default function Index() {
           <Textarea
             className='textarea'
             value={input}
-            placeholder='我想快速搞懂什么是 RAG，它和传统搜索有什么区别？最好通过几个问题帮助我记住重点。'
+            placeholder='输入一句话、一段文字，AI 会自动整理成一组闯关的题目'
             placeholderClass='placeholder'
             onInput={(e) => setInput(e.detail.value)}
             maxlength={2000}
           />
-          <View className='input-tip'>输入一句话、一段文字，AI 会自动整理成一组可闯关的题目</View>
         </View>
 
         <View className='sec-title'>热门主题</View>

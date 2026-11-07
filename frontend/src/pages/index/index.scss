@@ -234,3 +234,54 @@
     font-size: 28rpx;
   }
 }
+
+.kb-entry {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  border-radius: 28rpx;
+  padding: 22rpx 24rpx;
+
+  .icon.doc {
+    width: 52rpx;
+    height: 52rpx;
+    border-radius: 16rpx;
+    background: linear-gradient(135deg, #cdc5ff, #8b83e8 60%, #5a4fc4);
+    box-shadow: 0 0 24rpx rgba(139, 131, 232, 0.45);
+    position: relative;
+
+    &::after {
+      content: '';
+      position: absolute;
+      left: 14rpx;
+      top: 20rpx;
+      width: 24rpx;
+      height: 4rpx;
+      border-radius: 2rpx;
+      background: rgba(255, 255, 255, 0.85);
+      box-shadow: 0 8rpx 0 rgba(255, 255, 255, 0.85), 0 16rpx 0 rgba(255, 255, 255, 0.85);
+    }
+  }
+
+  .meta {
+    flex: 1;
+    min-width: 0;
+
+    .t {
+      font-size: 25rpx;
+      font-weight: 600;
+      color: #f5f3ff;
+    }
+
+    .s {
+      font-size: 21rpx;
+      color: #b6aedb;
+      margin-top: 4rpx;
+    }
+  }
+
+  .arrow {
+    color: #8d86b8;
+    font-size: 28rpx;
+  }
+}

@@ -34,10 +34,11 @@ class Quiz(BaseModel):
     keywords: list[str] = []
     questions: list[Question]
     sources: list[Source] = []
-    freshness: Literal["fresh", "stale"] = "stale"
+    freshness: Literal["fresh", "stale", "kb"] = "stale"
 
 
 class QuizGenerateRequest(BaseModel):
     user_input: str = Field(..., min_length=1)
     question_count: int = Field(default=5, ge=1, le=10)
     difficulty: str = "mixed"
+    knowledge_base_id: int | None = None

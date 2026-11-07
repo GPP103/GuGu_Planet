@@ -19,3 +19,6 @@ dist/
 dist-h5/
 .swc/
 
+
+# 后端运行时数据（向量库等）
+backend/data/

@@ -3,7 +3,7 @@ import json
 
 from sqlalchemy.orm import Session
 
-from app.core.exceptions import InputInvalidError, QuizGenerationError
+from app.core.exceptions import AuthError, InputInvalidError, QuizGenerationError
 from app.llm.output_schemas import LLMQuiz
 from app.models.question_bank import QuestionBank
 from app.models.quiz import Option, Question, Quiz, Source
@@ -15,7 +15,7 @@ from app.utils.text_cleaner import clean_text
 
 
 class QuizService:
-    def __init__(self, quiz_chain=None, db: Session | None = None, search_service=None):
+    def __init__(self, quiz_chain=None, db: Session | None = None, search_service=None, knowledge_service=None):
         if quiz_chain is None:
             from app.llm.quiz_chain import build_quiz_chain
 
@@ -25,13 +25,43 @@ class QuizService:
         self.chain = quiz_chain
         self.db = db
         self.search_service = search_service
+        self._knowledge_service = knowledge_service
 
-    def generate(self, user_input: str, question_count: int = 5, difficulty: str = "mixed") -> Quiz:
+    @property
+    def knowledge_service(self):
+        if self._knowledge_service is None:
+            if self.db is None:
+                from app.core.exceptions import QuizGenerationError
+
+                raise QuizGenerationError("知识库出题需要登录")
+            from app.services.knowledge_service import KnowledgeService
+
+            self._knowledge_service = KnowledgeService(self.db)
+        return self._knowledge_service
+
+    def generate(
+        self,
+        user_input: str,
+        question_count: int = 5,
+        difficulty: str = "mixed",
+        knowledge_base_id: int | None = None,
+        user_id: int | None = None,
+    ) -> Quiz:
         try:
             cleaned = validate_input(user_input)
         except ValueError as e:
             raise InputInvalidError(str(e)) from e
         cleaned = clean_text(cleaned)
+
+        # 0. 知识库出题：与缓存/联网互斥，严格基于用户文档
+        if knowledge_base_id is not None:
+            if user_id is None:
+                raise AuthError()
+            kb = self.knowledge_service.get_owned(user_id, knowledge_base_id)
+            chunks = self.knowledge_service.retrieve(user_id, knowledge_base_id, cleaned)
+            if not chunks:
+                raise QuizGenerationError("知识库未检索到相关内容，请补充文档后再试")
+            return self._generate_via_llm(cleaned, SearchContext(), doc_chunks=chunks, doc_name=kb.name)
 
         # 1. 关键字缓存命中：输入包含任一关键字即返回，省 token、提速
         if self.db is not None:
@@ -51,8 +81,17 @@ class QuizService:
 
         return quiz
 
-    def _generate_via_llm(self, cleaned: str, search_ctx: SearchContext) -> Quiz:
-        search_text = self._format_search_context(search_ctx)
+    def _generate_via_llm(
+        self,
+        cleaned: str,
+        search_ctx: SearchContext,
+        doc_chunks: list[str] | None = None,
+        doc_name: str = "",
+    ) -> Quiz:
+        if doc_chunks:
+            search_text = self._format_doc_context(doc_chunks)
+        else:
+            search_text = self._format_search_context(search_ctx)
         try:
             result = self.chain.invoke({"user_input": cleaned, "search_context": search_text})
         except Exception as e:
@@ -76,6 +115,13 @@ class QuizService:
                 )
             )
 
+        if doc_chunks:
+            sources = [Source(title=doc_name or "我的文档", url="")]
+            freshness = "kb"
+        else:
+            sources = [Source(title=s.title, url=s.url) for s in search_ctx.sources]
+            freshness = "fresh" if search_ctx.sources else "stale"
+
         return Quiz(
             quiz_id=gen_quiz_id(),
             title=result.title,
@@ -83,9 +129,16 @@ class QuizService:
             user_input=cleaned,
             keywords=list(result.keywords or []),
             questions=questions,
-            sources=[Source(title=s.title, url=s.url) for s in search_ctx.sources],
-            freshness="fresh" if search_ctx.sources else "stale",
+            sources=sources,
+            freshness=freshness,
         )
+
+    @staticmethod
+    def _format_doc_context(chunks: list[str]) -> str:
+        lines = ["【用户文档内容】（出题必须严格基于以下文档片段）"]
+        for i, c in enumerate(chunks, 1):
+            lines.append(f"片段{i}：{c}")
+        return "\n\n".join(lines)
 
     @staticmethod
     def _format_search_context(ctx: SearchContext) -> str:

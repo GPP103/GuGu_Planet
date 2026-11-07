@@ -462,3 +462,17 @@
     box-shadow: 0 16rpx 40rpx -12rpx rgba(245, 194, 107, 0.5);
   }
 }
+
+.src-bar.kb {
+  background: rgba(139, 131, 232, 0.12);
+  border-color: rgba(139, 131, 232, 0.4);
+
+  .src-tag {
+    color: #b6a8ff;
+    border-color: rgba(139, 131, 232, 0.5);
+  }
+
+  .src-tip {
+    color: #c9c3e8;
+  }
+}

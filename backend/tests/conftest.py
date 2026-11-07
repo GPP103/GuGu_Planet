@@ -1,4 +1,8 @@
 """pytest 共享 fixture。"""
+import hashlib
+import math
+import re
+
 import pytest
 from fastapi import Depends
 from fastapi.testclient import TestClient
@@ -18,6 +22,45 @@ def _stub_search(monkeypatch):
     from app.services.search_service import SearchContext, SearchService
 
     monkeypatch.setattr(SearchService, "search", lambda self, query: SearchContext())
+
+
+@pytest.fixture(autouse=True)
+def _fake_embedding(monkeypatch):
+    """确定性假向量：CJK 单字 + ASCII 词哈希进固定维度，同词同维、近文本可命中。"""
+    from app.services.embedding_service import EmbeddingService
+
+    dim = 1024
+
+    def _tokens(text: str) -> list[str]:
+        text = text.lower()
+        tokens = re.findall(r"[a-z0-9]+", text)
+        tokens.extend(re.findall(r"[\u4e00-\u9fff]", text))
+        return tokens
+
+    def fake_embed(self, texts):
+        vectors = []
+        for t in texts:
+            vec = [0.0] * dim
+            for tok in _tokens(t):
+                h = int(hashlib.md5(tok.encode("utf-8")).hexdigest(), 16) % dim
+                vec[h] += 1.0
+            norm = math.sqrt(sum(v * v for v in vec)) or 1.0
+            vectors.append([v / norm for v in vec])
+        return vectors
+
+    monkeypatch.setattr(EmbeddingService, "embed", fake_embed)
+
+
+@pytest.fixture(autouse=True)
+def _memory_vector_store(monkeypatch, tmp_path):
+    """向量库换成每个测试独立的临时 SQLite 文件，测试不落生产目录。"""
+    from app.services import knowledge_service
+    from app.services.vector_store import VectorStore
+
+    store = VectorStore(str(tmp_path / "vectors.sqlite3"))
+    monkeypatch.setattr(knowledge_service, "get_vector_store", lambda: store)
+    yield store
+    store.close()
 
 
 def fake_code2session(code: str) -> dict:

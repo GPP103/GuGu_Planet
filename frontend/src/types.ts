@@ -30,7 +30,16 @@ export interface Quiz {
   user_input: string
   questions: Question[]
   sources: Source[]
-  freshness: 'fresh' | 'stale'
+  freshness: 'fresh' | 'stale' | 'kb'
+}
+
+export interface KnowledgeBase {
+  id: number
+  name: string
+  source_type: string
+  source_name: string
+  chunk_count: number
+  created_at: string
 }
 
 export interface AnswerRecord {

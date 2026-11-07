@@ -38,3 +38,18 @@ class LoginCodeInvalidError(AppError):
 class WechatLoginError(AppError):
     def __init__(self, message: str = "微信登录失败，请稍后重试"):
         super().__init__(4012, message)
+
+
+class DocumentParseError(AppError):
+    def __init__(self, message: str = "文档解析失败"):
+        super().__init__(4101, message)
+
+
+class KnowledgeBaseError(AppError):
+    def __init__(self, message: str = "知识库操作失败"):
+        super().__init__(4102, message)
+
+
+class EmbeddingError(AppError):
+    def __init__(self, message: str = "向量化服务失败，请稍后重试"):
+        super().__init__(5003, message)

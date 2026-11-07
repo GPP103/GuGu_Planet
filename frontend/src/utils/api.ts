@@ -1,5 +1,5 @@
 import Taro from '@tarojs/taro'
-import type { AnswerRecord, HistoryItem, Question, Quiz, Report, UserProfile, WrongItem } from '../types'
+import type { AnswerRecord, HistoryItem, KnowledgeBase, Question, Quiz, Report, UserProfile, WrongItem } from '../types'
 import { getToken } from './store'
 
 const BASE_URL = 'http://127.0.0.1:8000'
@@ -28,11 +28,19 @@ async function request<T>(path: string, method: 'GET' | 'POST' | 'PUT' | 'DELETE
   return body.data as T
 }
 
-export function generateQuiz(userInput: string): Promise<Quiz> {
+function unwrap<T>(body: ApiResponse<T>): T {
+  if (body.code !== 0) {
+    throw new Error(body.message || '请求失败')
+  }
+  return body.data as T
+}
+
+export function generateQuiz(userInput: string, knowledgeBaseId?: number): Promise<Quiz> {
   return request<Quiz>('/api/v1/quiz/generate', 'POST', {
     user_input: userInput,
     question_count: 3,
-    difficulty: 'mixed'
+    difficulty: 'mixed',
+    ...(knowledgeBaseId != null ? { knowledge_base_id: knowledgeBaseId } : {})
   })
 }
 
@@ -92,4 +100,46 @@ export function getWrongList(): Promise<WrongItem[]> {
 
 export function removeWrong(wrongId: number): Promise<null> {
   return request<null>(`/api/v1/records/wrong/${wrongId}`, 'DELETE')
+}
+
+// ---------- 知识库 ----------
+
+export function listKnowledge(): Promise<KnowledgeBase[]> {
+  return request<KnowledgeBase[]>('/api/v1/knowledge/list', 'GET')
+}
+
+export function deleteKnowledge(kbId: number): Promise<null> {
+  return request<null>(`/api/v1/knowledge/${kbId}`, 'DELETE')
+}
+
+export function createKnowledgeLink(url: string, name: string): Promise<KnowledgeBase> {
+  return request<KnowledgeBase>('/api/v1/knowledge/link', 'POST', { url, name })
+}
+
+/** 小程序端上传（chooseMessageFile 拿到的临时路径） */
+export async function uploadKnowledgeFile(filePath: string, name: string): Promise<KnowledgeBase> {
+  const token = getToken()
+  const res = await Taro.uploadFile({
+    url: BASE_URL + '/api/v1/knowledge/upload',
+    filePath,
+    name: 'file',
+    formData: { name },
+    header: token ? { Authorization: `Bearer ${token}` } : {},
+    timeout: 120000
+  })
+  return unwrap<KnowledgeBase>(JSON.parse(res.data) as ApiResponse<KnowledgeBase>)
+}
+
+/** H5 端上传（fetch + FormData） */
+export async function uploadKnowledgeFileH5(file: File, name: string): Promise<KnowledgeBase> {
+  const token = getToken()
+  const form = new FormData()
+  form.append('file', file)
+  form.append('name', name)
+  const res = await fetch(BASE_URL + '/api/v1/knowledge/upload', {
+    method: 'POST',
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: form
+  })
+  return unwrap<KnowledgeBase>((await res.json()) as ApiResponse<KnowledgeBase>)
 }

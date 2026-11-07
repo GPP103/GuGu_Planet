@@ -66,3 +66,23 @@ class SearchService:
             for r in data.get("results", [])
         ]
         return SearchContext(answer=(data.get("answer") or ""), sources=sources)
+
+    def extract(self, url: str) -> str:
+        """抓取网页正文（Tavily extract），失败返回空字符串。"""
+        if not self.api_key:
+            return ""
+        try:
+            resp = httpx.post(
+                "https://api.tavily.com/extract",
+                json={"api_key": self.api_key, "urls": [url]},
+                timeout=settings.tavily_timeout,
+            )
+            resp.raise_for_status()
+            data = resp.json()
+            results = data.get("results", [])
+            if not results:
+                return ""
+            raw = results[0].get("raw_content") or ""
+            return raw.strip()
+        except Exception:
+            return ""

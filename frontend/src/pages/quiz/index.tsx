@@ -174,6 +174,12 @@ export default function QuizPage() {
             </View>
           </View>
         )}
+        {quiz.freshness === 'kb' && (
+          <View className='src-bar kb'>
+            <Text className='src-tag'>基于我的文档</Text>
+            <Text className='src-tip'>{quiz.sources[0]?.title || '个人知识库'}</Text>
+          </View>
+        )}
         {quiz.freshness === 'stale' && (
           <View className='src-bar stale'>
             <Text className='src-tag'>知识可能过时</Text>

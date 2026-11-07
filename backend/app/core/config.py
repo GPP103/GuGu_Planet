@@ -55,6 +55,21 @@ class Settings(BaseSettings):
     tavily_max_results: int = 5
     tavily_timeout: int = 15
 
+    # 阿里百炼 embedding（RAG 知识库）
+    # 注意：用户提供的 maas.qianwenai.com 域名不可用，实际走百炼官方兼容网关（同一 key 实测通）
+    embedding_api_key: str = ""
+    embedding_base_url: str = "https://dashscope.aliyuncs.com/compatible-mode/v1"
+    embedding_model: str = "qwen3.7-text-embedding-flash"
+    embedding_dimensions: int = 1024
+    embedding_timeout: int = 30
+
+    # 知识库（RAG）
+    vector_dir: str = str(BASE_DIR / "data" / "vectors")
+    chunk_size: int = 500
+    chunk_overlap: int = 50
+    kb_top_k: int = 5
+    kb_max_file_size: int = 5 * 1024 * 1024
+
     @property
     def database_url(self) -> str:
         return (

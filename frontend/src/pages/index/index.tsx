@@ -80,6 +80,15 @@ export default function Index() {
           ))}
         </View>
 
+        <View className='kb-entry glass' onClick={() => Taro.navigateTo({ url: '/pages/knowledge/index' })}>
+          <View className='icon doc' />
+          <View className='meta'>
+            <View className='t'>我的知识库</View>
+            <View className='s'>上传文档，基于自己的资料出题</View>
+          </View>
+          <Text className='arrow'>›</Text>
+        </View>
+
         {!loading && (
           <View className='cta' onClick={handleGenerate}>
             <View className='rocket' />

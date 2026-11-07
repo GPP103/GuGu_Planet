@@ -1,5 +1,7 @@
 # Design
 
+> **2026-11-07 17:10 更新**：向量库改为 **Chroma 默认 + SQLite 兜底**（chromadb 1.5.9 已装成功，`settings.vector_backend` 可切）；embedding base url 更正为 `https://maas.qianwenaiapi.com/compatible-mode/v1`（千问AI平台，实测 200/1024 维）。下文「决策 2 / 风险」中「改自研」的表述按此更新理解。
+
 ## Context
 
 出题链路现状（`quiz_service.py`）：`generate()` → 校验/清洗 → `question_bank` 关键字缓存命中直接返回 → 否则 Tavily 联网检索 → 注入 `{search_context}` 出题并写缓存。已有基础设施：JWT 鉴权（`deps.get_current_user`）、`users` 表、`search_service`（httpx 直调 Tavily）、统一响应 `{code, message, data}`。

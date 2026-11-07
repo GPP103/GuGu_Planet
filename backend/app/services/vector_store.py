@@ -1,8 +1,7 @@
-"""轻量向量库：SQLite 持久化 + 纯 Python 余弦相似度。
+"""向量库：默认 Chroma（本地持久化），SQLite 实现作兜底与测试载体。
 
-设计说明：原计划用 Chroma，但本机 pip 装 chromadb 大依赖（onnxruntime 等）持续超时，
-改用零新增依赖的自研实现。接口保持与 Chroma collection 同形（add / query / delete_collection），
-后续若要换回 Chroma，只需替换 get_vector_store 工厂。
+两者接口同形（get_or_create_collection / add / query / delete_collection），
+上层 knowledge_service 不感知具体实现，由 get_vector_store() 工厂选择。
 """
 import json
 import math
@@ -100,6 +99,65 @@ class VectorStore:
             pass
 
 
-def get_vector_store() -> VectorStore:
-    """向量库工厂（测试注入临时目录）。"""
+def get_vector_store():
+    """向量库工厂：默认 Chroma；chromadb 不可用或初始化失败时回退 SQLite。"""
+    if settings.vector_backend == "chroma":
+        try:
+            return ChromaVectorStore(settings.chroma_dir)
+        except Exception:  # noqa: BLE001 chromadb 缺失/初始化失败 → 兜底
+            pass
     return VectorStore(os.path.join(settings.vector_dir, "vectors.sqlite3"))
+
+
+class ChromaCollection:
+    """Chroma collection 适配器，对齐 SQLite 实现的返回结构。"""
+
+    def __init__(self, collection):
+        self.collection = collection
+
+    def add(self, ids: list[str], documents: list[str], embeddings: list[list[float]]) -> None:
+        self.collection.add(ids=ids, documents=documents, embeddings=embeddings)
+
+    def query(self, query_embeddings: list[list[float]], n_results: int = 5) -> dict:
+        res = self.collection.query(query_embeddings=query_embeddings, n_results=n_results)
+        return {
+            "documents": res.get("documents") or [[]],
+            "ids": res.get("ids") or [[]],
+        }
+
+
+class EmptyCollection:
+    """集合不存在时的空实现，保证上层拿到空结果而非异常。"""
+
+    def add(self, ids, documents, embeddings) -> None:  # pragma: no cover - 不应被调用
+        raise RuntimeError("向量集合不存在")
+
+    def query(self, query_embeddings, n_results: int = 5) -> dict:
+        return {"documents": [[]], "ids": [[]]}
+
+
+class ChromaVectorStore:
+    def __init__(self, path: str):
+        import chromadb
+
+        os.makedirs(path, exist_ok=True)
+        self.client = chromadb.PersistentClient(
+            path=path,
+            settings=chromadb.Settings(anonymized_telemetry=False),
+        )
+
+    def get_or_create_collection(self, name: str, metadata: dict | None = None) -> ChromaCollection:
+        col = self.client.get_or_create_collection(name=name, metadata=metadata or {"owner": "gugu"})
+        return ChromaCollection(col)
+
+    def get_collection(self, name: str):
+        try:
+            return ChromaCollection(self.client.get_collection(name=name))
+        except Exception:  # noqa: BLE001 集合不存在 → 空集合
+            return EmptyCollection()
+
+    def delete_collection(self, name: str) -> None:
+        self.client.delete_collection(name=name)
+
+    def close(self) -> None:
+        pass

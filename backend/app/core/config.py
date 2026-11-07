@@ -48,6 +48,12 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 10080
 
+    # Tavily 联网搜索
+    tavily_api_key: str = ""
+    tavily_search_depth: str = "advanced"
+    tavily_max_results: int = 5
+    tavily_timeout: int = 15
+
     @property
     def database_url(self) -> str:
         return (

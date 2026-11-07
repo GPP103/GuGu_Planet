@@ -5,7 +5,7 @@ import Mascot from '../../components/Mascot'
 import { generateReport, submitRecord } from '../../utils/api'
 import { ensureLogin } from '../../utils/auth'
 import { getQuiz, saveReport } from '../../utils/store'
-import type { AnswerRecord, Question, Quiz } from '../../types'
+import type { AnswerRecord, Question, Quiz, UserProfile } from '../../types'
 import './index.scss'
 
 const TYPE_LABEL: Record<string, string> = {
@@ -26,6 +26,7 @@ export default function QuizPage() {
   const [answered, setAnswered] = useState(false)
   const [answers, setAnswers] = useState<Record<string, { selected: string[]; answered: boolean }>>({})
   const [submitting, setSubmitting] = useState(false)
+  const [user, setUser] = useState<UserProfile | null>(null)
   const recordsRef = useRef<AnswerRecord[]>([])
   const startRef = useRef(0)
 
@@ -37,9 +38,17 @@ export default function QuizPage() {
     }
   }, [])
 
+  useEffect(() => {
+    ensureLogin().then((u) => u && setUser(u)).catch(() => null)
+  }, [])
+
   const question: Question | undefined = quiz?.questions[idx]
   const total = quiz?.questions.length || 0
   const isCorrect = answered && sameAnswer(selected, question?.answer || [])
+  const xp = user?.xp ?? 0
+  const level = user?.level ?? 1
+  const nextLevelXp = user?.next_level_xp ?? 50
+  const xpProgress = nextLevelXp > 0 ? Math.min(100, Math.round((xp / nextLevelXp) * 100)) : 0
 
   const submit = (sel: string[]) => {
     if (!question) return
@@ -93,6 +102,13 @@ export default function QuizPage() {
     }
   }
 
+  const copyUrl = (url: string) => {
+    if (!url) return
+    Taro.setClipboardData({ data: url }).then(() =>
+      Taro.showToast({ title: '已复制来源链接', icon: 'none' })
+    )
+  }
+
   const finish = async () => {
     if (!quiz || submitting) return
     setSubmitting(true)
@@ -144,19 +160,34 @@ export default function QuizPage() {
             ‹
           </View>
           <View className='stage-t'>第 {idx + 1} / {total} 关</View>
-          <View className='coin'>
-            <View className='c' />
-            1,280
-          </View>
         </View>
+
+        {quiz.freshness === 'fresh' && quiz.sources.length > 0 && (
+          <View className='src-bar'>
+            <Text className='src-tag'>联网最新</Text>
+            <View className='src-titles'>
+              {quiz.sources.slice(0, 2).map((s, i) => (
+                <Text key={i} className='src-title' onClick={() => copyUrl(s.url)}>
+                  {s.title}
+                </Text>
+              ))}
+            </View>
+          </View>
+        )}
+        {quiz.freshness === 'stale' && (
+          <View className='src-bar stale'>
+            <Text className='src-tag'>知识可能过时</Text>
+            <Text className='src-tip'>基于模型知识生成，建议输入最新资料</Text>
+          </View>
+        )}
 
         <View className='xp-wrap'>
           <View className='xp-row'>
             <Text>远征经验</Text>
-            <Text>LV.6 · 620 / 1000</Text>
+            <Text>LV.{level} · {xp} / {nextLevelXp}</Text>
           </View>
           <View className='xp-bar'>
-            <View className='xp-fill' />
+            <View className='xp-fill' style={{ width: `${xpProgress}%` }} />
           </View>
         </View>
 

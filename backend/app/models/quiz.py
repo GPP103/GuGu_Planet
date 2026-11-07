@@ -20,6 +20,11 @@ class Question(BaseModel):
     difficulty: Literal["easy", "medium", "hard"]
 
 
+class Source(BaseModel):
+    title: str
+    url: str
+
+
 class Quiz(BaseModel):
     quiz_id: str
     title: str
@@ -28,6 +33,8 @@ class Quiz(BaseModel):
     user_input: str
     keywords: list[str] = []
     questions: list[Question]
+    sources: list[Source] = []
+    freshness: Literal["fresh", "stale"] = "stale"
 
 
 class QuizGenerateRequest(BaseModel):

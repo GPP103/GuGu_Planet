@@ -12,6 +12,14 @@ from app.services.auth_service import AuthService
 from sqlalchemy.pool import StaticPool
 
 
+@pytest.fixture(autouse=True)
+def _stub_search(monkeypatch):
+    """测试统一把联网搜索 stub 成空结果，避免真实请求与额度消耗。"""
+    from app.services.search_service import SearchContext, SearchService
+
+    monkeypatch.setattr(SearchService, "search", lambda self, query: SearchContext())
+
+
 def fake_code2session(code: str) -> dict:
     """测试用假微信登录，固定返回 openid。"""
     return {"openid": "openid_test", "session_key": "sk", "unionid": "u1"}

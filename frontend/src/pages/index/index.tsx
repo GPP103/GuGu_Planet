@@ -90,7 +90,7 @@ export default function Index() {
         {loading && (
           <View className='loading glass'>
             <Mascot variant='loading' />
-            <View className='t'>正在生成题库…</View>
+            <View className='t'>正在联网检索最新资料…</View>
             <View className='elapsed'>耗时 {elapsed}s</View>
           </View>
         )}

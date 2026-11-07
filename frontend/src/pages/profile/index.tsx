@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import Taro from '@tarojs/taro'
-import { Button, Input, Text, View } from '@tarojs/components'
+import { Button, Form, Input, Text, View } from '@tarojs/components'
 import Mascot from '../../components/Mascot'
 import TabBar from '../../components/TabBar'
-import { ensureLogin, logout } from '../../utils/auth'
+import { cacheUser, ensureLogin, logout } from '../../utils/auth'
 import { updateMe } from '../../utils/api'
 import type { UserProfile } from '../../types'
 import './index.scss'
@@ -52,19 +52,24 @@ export default function ProfilePage() {
     try {
       const updated = await updateMe({ avatar_url: `data:image/png;base64,${base64}` })
       setUser(updated)
+      cacheUser(updated)
       Taro.showToast({ title: '头像已更新', icon: 'none' })
     } catch (err) {
       Taro.showToast({ title: (err as Error).message || '保存失败', icon: 'none' })
     }
   }
 
-  const onNicknameBlur = async () => {
+  // 微信 type="nickname" 回填是异步的，onBlur 会先于回填触发导致读到旧值，
+  // 官方推荐用 form + submit 按钮主动收集，确保拿到最终昵称
+  const onNicknameSubmit = async (e: { detail?: { value?: Record<string, string> } }) => {
+    const name = (e.detail?.value?.nickname || '').trim()
     setEditing(false)
-    const name = nickname.trim()
     if (!name || !user || name === user.nickname) return
     try {
       const updated = await updateMe({ nickname: name })
       setUser(updated)
+      setNickname(name)
+      cacheUser(updated)
       Taro.showToast({ title: '昵称已保存', icon: 'none' })
     } catch (err) {
       Taro.showToast({ title: (err as Error).message || '保存失败', icon: 'none' })
@@ -134,15 +139,20 @@ export default function ProfilePage() {
           </Button>
           <View className='nick-area'>
             {editing ? (
-              <Input
-                className='nick-input'
-                type='nickname'
-                value={nickname}
-                focus
-                onInput={(e) => setNickname(e.detail.value)}
-                onBlur={onNicknameBlur}
-                maxlength={32}
-              />
+              <Form onSubmit={onNicknameSubmit}>
+                <Input
+                  className='nick-input'
+                  type='nickname'
+                  name='nickname'
+                  defaultValue={nickname}
+                  focus
+                  maxlength={32}
+                />
+                <View className='nick-actions'>
+                  <View className='nick-cancel' onClick={() => setEditing(false)}>取消</View>
+                  <Button className='nick-save' formType='submit'>保存</Button>
+                </View>
+              </Form>
             ) : (
               <View className='nick' onClick={() => setEditing(true)}>
                 {user.nickname}

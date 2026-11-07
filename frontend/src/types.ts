@@ -17,6 +17,11 @@ export interface Question {
   difficulty: Difficulty
 }
 
+export interface Source {
+  title: string
+  url: string
+}
+
 export interface Quiz {
   quiz_id: string
   title: string
@@ -24,6 +29,8 @@ export interface Quiz {
   source_type: string
   user_input: string
   questions: Question[]
+  sources: Source[]
+  freshness: 'fresh' | 'stale'
 }
 
 export interface AnswerRecord {
@@ -52,6 +59,9 @@ export interface UserProfile {
   total_correct: number
   current_streak: number
   accuracy: number
+  xp: number
+  level: number
+  next_level_xp: number
 }
 
 export interface RecordItem {

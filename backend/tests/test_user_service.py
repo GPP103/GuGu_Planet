@@ -6,7 +6,13 @@ import pytest
 from app.core.exceptions import InputInvalidError
 from app.models.user import User
 from app.models.user_schemas import UpdateProfileRequest
-from app.services.user_service import UserService, to_user_out
+from app.services.user_service import (
+    UserService,
+    calc_level,
+    calc_next_level_xp,
+    calc_xp,
+    to_user_out,
+)
 
 
 def _make_user(db_session, **kw):
@@ -89,3 +95,39 @@ def test_update_only_avatar_keeps_nickname(db_session):
     out = svc.update_profile(u, UpdateProfileRequest(avatar_url="http://b.png"))
     assert out.nickname == "保持"
     assert out.avatar_url == "http://b.png"
+
+
+def test_calc_xp():
+    assert calc_xp(0) == 0
+    assert calc_xp(8) == 80
+
+
+def test_calc_level_thresholds():
+    assert calc_level(0) == 1
+    assert calc_level(49) == 1
+    assert calc_level(50) == 2
+    assert calc_level(620) == 6
+    assert calc_level(1000) == 7
+
+
+def test_calc_next_level_xp():
+    assert calc_next_level_xp(0) == 50
+    assert calc_next_level_xp(620) == 1000
+    assert calc_next_level_xp(3000) == 3000  # 满级停在上限
+
+
+def test_to_user_out_includes_xp_level():
+    u = User(id=1, openid="o", nickname="小咕", total_answered=70, total_correct=62, current_streak=0)
+    out = to_user_out(u)
+    assert out.xp == 620
+    assert out.level == 6
+    assert out.next_level_xp == 1000
+
+
+def test_submit_record_returns_xp_level(db_session):
+    u = _make_user(db_session)
+    svc = UserService(db_session)
+    r = svc.submit_study_record(u, 5, 5)
+    assert r.xp == 50
+    assert r.level == 2
+    assert r.next_level_xp == 120

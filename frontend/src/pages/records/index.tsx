@@ -152,7 +152,7 @@ export default function RecordsPage() {
                               </View>
                             )}
                             <View className='d-ans'>
-                              <Text className='d-mine'>我的答案：{item.user_answer.join('、') || '未作答'}</Text>
+                              <Text className={`d-mine ${item.is_correct ? 'ok' : ''}`}>我的答案：{item.user_answer.join('、') || '未作答'}</Text>
                               <Text className='d-right'>正确答案：{item.answer.join('、')}</Text>
                             </View>
                             {item.explanation && (

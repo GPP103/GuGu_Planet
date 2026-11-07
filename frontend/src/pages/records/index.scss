@@ -205,7 +205,7 @@
     margin-top: 14rpx;
     font-size: 24rpx;
 
-    .d-mine { color: #ff8f8f; }
+    .d-mine { color: #ff8f8f; &.ok { color: #5fd39a; } }
     .d-right { color: #5fd39a; }
   }
 

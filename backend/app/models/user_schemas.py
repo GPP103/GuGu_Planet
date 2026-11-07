@@ -10,6 +10,9 @@ class UserOut(BaseModel):
     total_correct: int
     current_streak: int
     accuracy: int
+    xp: int
+    level: int
+    next_level_xp: int
 
 
 class LoginRequest(BaseModel):
@@ -36,3 +39,6 @@ class StudyRecordResponse(BaseModel):
     total_correct: int
     current_streak: int
     accuracy: int
+    xp: int
+    level: int
+    next_level_xp: int

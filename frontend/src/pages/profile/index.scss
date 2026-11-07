@@ -121,6 +121,46 @@
       box-sizing: border-box;
     }
 
+    .nick-actions {
+      display: flex;
+      gap: 16rpx;
+      margin-top: 16rpx;
+
+      .nick-cancel {
+        flex: 1;
+        height: 64rpx;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24rpx;
+        color: #b6aedb;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        border-radius: 14rpx;
+        background: rgba(255, 255, 255, 0.06);
+      }
+
+      .nick-save {
+        flex: 1;
+        height: 64rpx;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24rpx;
+        font-weight: 600;
+        color: #2a1c05;
+        border: none;
+        border-radius: 14rpx;
+        background: linear-gradient(135deg, #ffe9bd, #f5c26b 55%, #e0a54a);
+        line-height: normal;
+
+        &::after {
+          border: none;
+        }
+      }
+    }
+
     .uid {
       font-size: 22rpx;
       color: #8d86b8;

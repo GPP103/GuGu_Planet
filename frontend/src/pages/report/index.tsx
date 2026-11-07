@@ -1,16 +1,23 @@
 import { useEffect, useState } from 'react'
 import Taro from '@tarojs/taro'
-import { Canvas, Image, Text, View } from '@tarojs/components'
+import { Canvas, Text, View } from '@tarojs/components'
 import Mascot from '../../components/Mascot'
-import { illustrate } from '../../utils/api'
-import { ensureLogin } from '../../utils/auth'
 import { getQuiz, getReport } from '../../utils/store'
 import type { Report } from '../../types'
 import './index.scss'
 
 const isWeapp = process.env.TARO_ENV === 'weapp'
 
-function wrapText(ctx: any, text: string, x: number, y: number, maxWidth: number, lineHeight: number, maxLines: number) {
+/** canvas 文字自动换行，返回下一行 y 坐标 */
+function wrapText(
+  ctx: any,
+  text: string,
+  x: number,
+  y: number,
+  maxWidth: number,
+  lineHeight: number,
+  maxLines: number
+) {
   const chars = Array.from(text || '')
   let line = ''
   let row = 0
@@ -20,9 +27,7 @@ function wrapText(ctx: any, text: string, x: number, y: number, maxWidth: number
       ctx.fillText(line, x, y + row * lineHeight)
       row += 1
       line = chars[i]
-      if (row >= maxLines) {
-        return y + row * lineHeight
-      }
+      if (row >= maxLines) return y + row * lineHeight
     } else {
       line = test
     }
@@ -39,9 +44,6 @@ export default function ReportPage() {
   const [total, setTotal] = useState(5)
   const [topic, setTopic] = useState('')
   const [posterOpen, setPosterOpen] = useState(false)
-  const [posterUrl, setPosterUrl] = useState('')
-  const [posterLoading, setPosterLoading] = useState(false)
-  const [posterHint, setPosterHint] = useState('')
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
@@ -78,22 +80,6 @@ export default function ReportPage() {
   const accuracy = report.accuracy
   const stars = Math.max(1, Math.min(total, Math.round((accuracy * total) / 100)))
 
-  const openPoster = async () => {
-    setPosterOpen(true)
-    setPosterHint('')
-    if (posterUrl) return
-    setPosterLoading(true)
-    try {
-      await ensureLogin().catch(() => null)
-      const res = await illustrate(topic || '学习')
-      setPosterUrl(res.url)
-    } catch (e) {
-      setPosterHint((e as Error)?.message || '插画生成失败，可先保存文字海报')
-    } finally {
-      setPosterLoading(false)
-    }
-  }
-
   const savePoster = () => {
     if (saving) return
     if (!isWeapp) {
@@ -102,65 +88,97 @@ export default function ReportPage() {
     }
     setSaving(true)
     const W = Taro.getSystemInfoSync().windowWidth
-    const H = Math.round(W * 1.62)
+    const H = Math.round(W * 1.5)
     const ctx = Taro.createCanvasContext('posterCanvas')
-    const pad = 18
-    const imgSize = W - pad * 2
+    const pad = 20
 
-    ctx.setFillStyle('#0b0a1f')
+    // 背景渐变
+    const grd = ctx.createLinearGradient(0, 0, 0, H)
+    grd.addColorStop(0, '#1a1440')
+    grd.addColorStop(0.55, '#0f0c28')
+    grd.addColorStop(1, '#08081f')
+    ctx.setFillStyle(grd)
     ctx.fillRect(0, 0, W, H)
 
-    ctx.setFillStyle('#ffe3a3')
-    ctx.setFontSize(13)
-    ctx.fillText('咕咕星球 GuGu', pad, 30)
-
-    let y = 44
-    if (posterUrl) {
-      try {
-        ctx.drawImage(posterUrl, pad, y, imgSize, imgSize)
-      } catch {
-        /* 图片加载失败则跳过 */
-      }
-      y += imgSize + 34
-    } else {
-      y += 10
-    }
-
-    ctx.setFillStyle('#f5c26b')
-    ctx.setFontSize(34)
-    ctx.fillText(`${accuracy}%`, pad, y + 26)
-    ctx.setFillStyle('#c9c3e8')
-    ctx.setFontSize(12)
-    ctx.fillText('本次闯关正确率', pad + 78, y + 24)
-
-    y += 46
-    ctx.setFillStyle('#f7f5ff')
-    ctx.setFontSize(13)
-    y = wrapText(ctx, topic || '学习', pad, y + 8, W - pad * 2, 19, 1)
-
-    y += 12
-    ctx.setFillStyle('#c9c3e8')
-    ctx.setFontSize(12)
-    report.three_line_summary.slice(0, 3).forEach((line) => {
-      y = wrapText(ctx, `· ${line}`, pad, y + 8, W - pad * 2, 18, 2) + 4
+    // 星点装饰（固定位置，保证每次一致）
+    const seed = [0.12, 0.31, 0.47, 0.63, 0.78, 0.9, 0.22, 0.42, 0.58, 0.71, 0.85, 0.05]
+    ctx.setFillStyle('rgba(255,255,255,0.5)')
+    seed.forEach((sx, i) => {
+      const sy = 0.06 + i * 0.035
+      ctx.beginPath()
+      ctx.arc(sx * W, sy * H, i % 3 === 0 ? 1.4 : 0.9, 0, Math.PI * 2)
+      ctx.fill()
     })
 
-    y += 6
+    // 品牌
     ctx.setFillStyle('#ffe3a3')
     ctx.setFontSize(12)
-    y = wrapText(ctx, `「${report.share_quote}」`, pad, y + 8, W - pad * 2, 18, 2)
-
-    // 底部品牌条 + 小程序码占位
-    const boxY = H - 76
-    ctx.setFillStyle('rgba(255,255,255,0.06)')
-    ctx.fillRect(pad, boxY, W - pad * 2, 56)
+    ctx.fillText('咕咕星球 GuGu', pad, 34)
     ctx.setFillStyle('#9a93bd')
-    ctx.setFontSize(11)
-    ctx.fillText('咕咕带你点亮知识', pad + 12, boxY + 24)
     ctx.setFontSize(10)
-    ctx.fillText('长按识别小程序码 · 一起闯关', pad + 12, boxY + 42)
-    ctx.setFillStyle('rgba(255,255,255,0.12)')
-    ctx.fillRect(W - pad - 56, boxY + 8, 40, 40)
+    ctx.fillText('远征报告', pad, 52)
+
+    // 正确率圆环
+    const cx = W / 2
+    const cy = 170
+    const r = 56
+    ctx.setLineWidth(10)
+    ctx.setStrokeStyle('rgba(255,255,255,0.12)')
+    ctx.beginPath()
+    ctx.arc(cx, cy, r, 0, Math.PI * 2)
+    ctx.stroke()
+    ctx.setStrokeStyle('#f5c26b')
+    ctx.beginPath()
+    ctx.arc(cx, cy, r, -Math.PI / 2, -Math.PI / 2 + (Math.PI * 2 * accuracy) / 100)
+    ctx.stroke()
+
+    ctx.setTextAlign('center')
+    ctx.setFillStyle('#f5c26b')
+    ctx.setFontSize(30)
+    ctx.fillText(`${accuracy}%`, cx, cy + 8)
+    ctx.setFillStyle('#9a93bd')
+    ctx.setFontSize(10)
+    ctx.fillText('正确率', cx, cy + 26)
+
+    ctx.setFillStyle('#c9c3e8')
+    ctx.setFontSize(11)
+    ctx.fillText(`咕咕为你点亮了 ${stars} 颗星`, cx, cy + 92)
+    ctx.setTextAlign('left')
+
+    // 主题
+    let y = cy + 126
+    ctx.setFillStyle('#f7f5ff')
+    ctx.setFontSize(14)
+    y = wrapText(ctx, topic || '学习', pad, y, W - pad * 2, 20, 1)
+
+    // 三句总结
+    y += 18
+    ctx.setFillStyle('#ffe3a3')
+    ctx.setFontSize(11)
+    ctx.fillText('三句知识总结', pad, y)
+    y += 18
+    ctx.setFillStyle('#c9c3e8')
+    ctx.setFontSize(11)
+    report.three_line_summary.slice(0, 3).forEach((line) => {
+      y = wrapText(ctx, `· ${line}`, pad, y, W - pad * 2, 17, 2) + 4
+    })
+
+    // 金句
+    y += 12
+    ctx.setFillStyle('#ffe3a3')
+    ctx.setFontSize(11)
+    y = wrapText(ctx, `「${report.share_quote}」`, pad, y, W - pad * 2, 17, 2)
+
+    // 底部品牌条
+    const boxY = H - 64
+    ctx.setFillStyle('rgba(255,255,255,0.06)')
+    ctx.fillRect(pad, boxY, W - pad * 2, 44)
+    ctx.setFillStyle('#c9c3e8')
+    ctx.setFontSize(10)
+    ctx.fillText('咕咕带你点亮知识', pad + 12, boxY + 20)
+    ctx.setFillStyle('#6f679a')
+    ctx.setFontSize(9)
+    ctx.fillText('万物皆可闯关 · 在星海里点亮知识', pad + 12, boxY + 34)
 
     ctx.draw(false, () => {
       setTimeout(() => {
@@ -265,7 +283,7 @@ export default function ReportPage() {
           <View className='q'>— 今日学习金句</View>
         </View>
 
-        <View className='next' onClick={openPoster}>
+        <View className='next' onClick={() => setPosterOpen(true)}>
           生成分享海报
         </View>
         <View className='home-link' onClick={() => Taro.redirectTo({ url: '/pages/records/index' })}>
@@ -277,63 +295,41 @@ export default function ReportPage() {
         <View className='poster-mask'>
           <View className='poster-card'>
             <View className='poster-head'>
-              <Text className='ph-brand'>咕咕星球 GuGu</Text>
+              <Text className='ph-brand'>咕咕星球 GuGu · 远征报告</Text>
               <Text className='ph-close' onClick={() => setPosterOpen(false)}>
                 ✕
               </Text>
             </View>
 
-            {posterLoading && (
-              <View className='poster-loading'>
-                <Mascot variant='loading' />
-                <View className='pl-t'>咕咕正在画插画…</View>
-                <View className='pl-s'>首次生成约 1 分钟，之后秒出</View>
+            <View className='poster-preview'>
+              <View className='pv-brand'>咕咕星球 GuGu</View>
+              <View className='pv-ring'>
+                <View className='pv-pct'>{accuracy}%</View>
+                <View className='pv-label'>正确率</View>
               </View>
-            )}
-
-            {!posterLoading && (
-              <>
-                {posterUrl ? (
-                  <Image className='poster-img' src={posterUrl} mode='widthFix' />
-                ) : (
-                  <View className='poster-img placeholder-img'>
-                    <Text>插画未生成</Text>
+              <View className='pv-stars'>咕咕为你点亮了 {stars} 颗星</View>
+              <View className='pv-topic'>{topic || '学习'}</View>
+              <View className='pv-lines'>
+                {report.three_line_summary.slice(0, 3).map((l, i) => (
+                  <View key={i} className='pv-line'>
+                    · {l}
                   </View>
-                )}
-                <View className='poster-body'>
-                  <View className='pb-row'>
-                    <Text className='pb-pct'>{accuracy}%</Text>
-                    <Text className='pb-label'>本次闯关正确率</Text>
-                  </View>
-                  <View className='pb-topic'>{topic || '学习'}</View>
-                  <View className='pb-lines'>
-                    {report.three_line_summary.slice(0, 3).map((l, i) => (
-                      <View key={i} className='pb-line'>
-                        · {l}
-                      </View>
-                    ))}
-                  </View>
-                  <View className='pb-quote'>「{report.share_quote}」</View>
-                  <View className='pb-foot'>
-                    <Text>咕咕带你点亮知识</Text>
-                    <View className='qr' />
-                  </View>
-                </View>
-              </>
-            )}
-
-            {posterHint && <View className='poster-hint'>{posterHint}</View>}
+                ))}
+              </View>
+              <View className='pv-quote'>「{report.share_quote}」</View>
+              <View className='pv-foot'>
+                <Text>咕咕带你点亮知识</Text>
+                <Text className='pv-foot-s'>万物皆可闯关</Text>
+              </View>
+            </View>
 
             <View className='poster-actions'>
-              <View
-                className={`pa-btn ghost ${posterLoading ? 'disabled' : ''}`}
-                onClick={() => setPosterOpen(false)}
-              >
+              <View className='pa-btn ghost' onClick={() => setPosterOpen(false)}>
                 关闭
               </View>
               <View
-                className={`pa-btn ${posterLoading || saving ? 'disabled' : ''}`}
-                onClick={() => !posterLoading && !saving && savePoster()}
+                className={`pa-btn ${saving ? 'disabled' : ''}`}
+                onClick={() => !saving && savePoster()}
               >
                 {saving ? '保存中…' : '保存到相册'}
               </View>

@@ -284,7 +284,7 @@
   }
 }
 
-/* ---------- 分享海报 ---------- */
+/* ---------- 分享海报（纯本地排版，不调生图） ---------- */
 .poster-mask {
   position: fixed;
   inset: 0;
@@ -306,7 +306,7 @@
   padding: 26rpx;
   display: flex;
   flex-direction: column;
-  gap: 18rpx;
+  gap: 20rpx;
 
   .poster-head {
     display: flex;
@@ -317,7 +317,7 @@
       font-size: 24rpx;
       font-weight: 700;
       color: #ffe3a3;
-      letter-spacing: 2rpx;
+      letter-spacing: 1rpx;
     }
 
     .ph-close {
@@ -327,116 +327,102 @@
     }
   }
 
-  .poster-loading {
+  .poster-preview {
+    border-radius: 26rpx;
+    padding: 32rpx 28rpx 22rpx;
+    background:
+      radial-gradient(420rpx 220rpx at 12% 0%, #241a56 0%, transparent 62%),
+      radial-gradient(360rpx 240rpx at 100% 18%, #201a52 0%, transparent 60%),
+      linear-gradient(180deg, #1a1440 0%, #0f0c28 55%, #08081f 100%);
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 14rpx;
-    padding: 80rpx 0;
 
-    .pl-t {
-      font-size: 26rpx;
-      color: #f7f5ff;
-      font-weight: 600;
-    }
-
-    .pl-s {
+    .pv-brand {
+      align-self: flex-start;
       font-size: 22rpx;
-      color: #9a93bd;
+      font-weight: 700;
+      color: #ffe3a3;
+      letter-spacing: 1rpx;
     }
-  }
 
-  .poster-img {
-    width: 100%;
-    border-radius: 24rpx;
-    display: block;
-  }
-
-  .placeholder-img {
-    height: 420rpx;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24rpx;
-    color: #6f679a;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px dashed rgba(255, 255, 255, 0.16);
-  }
-
-  .poster-body {
-    display: flex;
-    flex-direction: column;
-    gap: 12rpx;
-
-    .pb-row {
+    .pv-ring {
+      width: 220rpx;
+      height: 220rpx;
+      border-radius: 50%;
+      border: 10rpx solid rgba(245, 194, 107, 0.55);
       display: flex;
-      align-items: baseline;
-      gap: 14rpx;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4rpx;
 
-      .pb-pct {
-        font-size: 52rpx;
+      .pv-pct {
+        font-size: 62rpx;
         font-weight: 700;
         color: #f5c26b;
         font-variant-numeric: tabular-nums;
       }
 
-      .pb-label {
-        font-size: 22rpx;
+      .pv-label {
+        font-size: 20rpx;
         color: #9a93bd;
       }
     }
 
-    .pb-topic {
+    .pv-stars {
+      font-size: 22rpx;
+      color: #c9c3e8;
+    }
+
+    .pv-topic {
       font-size: 28rpx;
       font-weight: 600;
       color: #f7f5ff;
+      text-align: center;
     }
 
-    .pb-lines {
+    .pv-lines {
+      align-self: stretch;
       display: flex;
       flex-direction: column;
-      gap: 6rpx;
+      gap: 8rpx;
 
-      .pb-line {
+      .pv-line {
         font-size: 23rpx;
         color: #c9c3e8;
         line-height: 1.6;
       }
     }
 
-    .pb-quote {
+    .pv-quote {
+      align-self: stretch;
       font-size: 23rpx;
       color: #ffe3a3;
       line-height: 1.6;
     }
 
-    .pb-foot {
-      margin-top: 6rpx;
-      padding: 18rpx 20rpx;
-      border-radius: 18rpx;
-      background: rgba(255, 255, 255, 0.05);
+    .pv-foot {
+      align-self: stretch;
+      margin-top: 8rpx;
+      padding: 16rpx 18rpx;
+      border-radius: 16rpx;
+      background: rgba(255, 255, 255, 0.06);
       display: flex;
       align-items: center;
       justify-content: space-between;
 
       text {
         font-size: 21rpx;
-        color: #9a93bd;
+        color: #c9c3e8;
       }
 
-      .qr {
-        width: 72rpx;
-        height: 72rpx;
-        border-radius: 12rpx;
-        background: rgba(255, 255, 255, 0.12);
+      .pv-foot-s {
+        font-size: 20rpx;
+        color: #6f679a;
       }
     }
-  }
-
-  .poster-hint {
-    font-size: 22rpx;
-    color: #ff8f8f;
-    text-align: center;
   }
 
   .poster-actions {
@@ -474,5 +460,5 @@
 
 .poster-canvas {
   width: 750rpx;
-  height: 1215rpx;
+  height: 1125rpx;
 }

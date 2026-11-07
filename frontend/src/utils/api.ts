@@ -69,17 +69,6 @@ export function illustrateQuestion(stem: string, knowledgePoint: string, topic: 
   })
 }
 
-export interface PosterIllustration {
-  url: string
-  cached: boolean
-  prompt: string
-}
-
-/** 分享海报插画（需登录） */
-export function illustrate(topic: string): Promise<PosterIllustration> {
-  return request<PosterIllustration>('/api/v1/illustrate', 'POST', { topic })
-}
-
 export function generateReport(
   quizId: string,
   topic: string,

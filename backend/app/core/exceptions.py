@@ -53,3 +53,8 @@ class KnowledgeBaseError(AppError):
 class EmbeddingError(AppError):
     def __init__(self, message: str = "向量化服务失败，请稍后重试"):
         super().__init__(5003, message)
+
+
+class ImageGenerationError(AppError):
+    def __init__(self, message: str = "图片生成失败，请稍后重试"):
+        super().__init__(5004, message)

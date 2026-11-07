@@ -71,6 +71,14 @@ class Settings(BaseSettings):
     kb_top_k: int = 5
     kb_max_file_size: int = 5 * 1024 * 1024
 
+    # AI 生图（分享海报插画）
+    image_api_key: str = ""
+    image_base_url: str = "https://maas.qianwenaiapi.com/compatible-mode/v1"
+    image_model: str = "qwen-image-3.0"
+    image_size: str = "1024x1024"
+    image_timeout: int = 180
+    image_dir: str = str(BASE_DIR / "data" / "images")
+
     @property
     def database_url(self) -> str:
         return (

@@ -1,10 +1,12 @@
 """FastAPI 应用入口。"""
+import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 from app.api.v1.routes import api_router
 from app.core.config import settings
@@ -33,6 +35,10 @@ app.add_middleware(
 )
 
 app.include_router(api_router)
+
+# 生图插画本地存储的静态访问（后续换 COS 时改前端 URL 前缀即可）
+os.makedirs(settings.image_dir, exist_ok=True)
+app.mount("/static/images", StaticFiles(directory=settings.image_dir), name="images")
 
 
 @app.exception_handler(AppError)

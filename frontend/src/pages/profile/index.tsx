@@ -172,15 +172,14 @@ export default function ProfilePage() {
           <View className='stat'>
             <View className='num'>{user.accuracy}%</View>
             <View className='label'>正确率</View>
+            <View className='sub'>
+              {user.total_correct}/{user.total_answered}
+            </View>
           </View>
           <View className='stat'>
             <View className='num'>{user.current_streak}</View>
             <View className='label'>连续天数</View>
           </View>
-        </View>
-
-        <View className='tip glass'>
-          <Text>答对 {user.total_correct} 题 / 共答 {user.total_answered} 题</Text>
         </View>
 
         <View className='sec-title'>我的功能</View>

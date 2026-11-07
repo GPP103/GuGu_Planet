@@ -36,7 +36,7 @@ class ImageService:
         prompt = build_prompt(topic)
         name = cache_name(prompt)
         if self.storage.exists(name):
-            return {"url": f"/static/images/{name}", "cached": True, "prompt": prompt}
+            return {"url": self.storage.url_for(name), "cached": True, "prompt": prompt}
 
         image_url = self._request_generation(prompt)
         data = self._download(image_url)

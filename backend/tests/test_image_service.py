@@ -108,3 +108,105 @@ def test_illustrate_endpoint_ok(client, monkeypatch):
         assert body["data"]["cached"] is True
     finally:
         app.dependency_overrides.clear()
+
+
+class FakeCosClient:
+    def __init__(self, existing: set[str] | None = None):
+        self.store: dict[str, bytes] = {}
+        self.existing = existing or set()
+        self.put_calls = 0
+
+    def head_object(self, Bucket, Key):
+        if Key in self.existing or Key in self.store:
+            return {"Content-Length": 1}
+        raise Exception("NotFound")
+
+    def put_object(self, Bucket, Key, Body, ContentType=None):
+        self.put_calls += 1
+        self.store[Key] = Body
+
+
+def test_cos_storage_save_and_exists():
+    from app.services.image_storage import CosImageStorage
+
+    client = FakeCosClient()
+    storage = CosImageStorage(
+        bucket="b-1250000000", region="ap-shanghai", prefix="illustrations", client=client
+    )
+    assert storage.exists("a.png") is False
+    url = storage.save("a.png", b"PNG")
+    assert url == "https://b-1250000000.cos.ap-shanghai.myqcloud.com/illustrations/a.png"
+    assert client.put_calls == 1
+    assert storage.exists("a.png") is True
+    assert storage.url_for("a.png") == url
+
+
+def test_illustrate_uses_cos_cache(monkeypatch):
+    from app.services.image_storage import CosImageStorage
+
+    client = FakeCosClient(existing={"illustrations/abc.png"})
+    storage = CosImageStorage(
+        bucket="b-1250000000", region="ap-shanghai", prefix="illustrations", client=client
+    )
+    svc = ImageService(api_key="k", storage=storage)
+    name = cache_name(build_prompt("量子计算"))
+    client.existing.add(f"illustrations/{name}")
+
+    def boom(*args, **kwargs):
+        raise AssertionError("命中缓存不应调用生图接口")
+
+    monkeypatch.setattr(image_module.httpx, "post", boom)
+    result = svc.illustrate("量子计算")
+    assert result["cached"] is True
+    assert "cos.ap-shanghai.myqcloud.com" in result["url"]
+
+
+class FakeCosClient:
+    def __init__(self, existing: set[str] | None = None):
+        self.store: dict[str, bytes] = {}
+        self.existing = existing or set()
+        self.put_calls = 0
+
+    def head_object(self, Bucket, Key):
+        if Key in self.existing or Key in self.store:
+            return {"Content-Length": 1}
+        raise Exception("NotFound")
+
+    def put_object(self, Bucket, Key, Body, ContentType=None):
+        self.put_calls += 1
+        self.store[Key] = Body
+
+
+def test_cos_storage_save_and_exists():
+    from app.services.image_storage import CosImageStorage
+
+    client = FakeCosClient()
+    storage = CosImageStorage(
+        bucket="b-1250000000", region="ap-shanghai", prefix="illustrations", client=client
+    )
+    assert storage.exists("a.png") is False
+    url = storage.save("a.png", b"PNG")
+    assert url == "https://b-1250000000.cos.ap-shanghai.myqcloud.com/illustrations/a.png"
+    assert client.put_calls == 1
+    assert storage.exists("a.png") is True
+    assert storage.url_for("a.png") == url
+
+
+def test_illustrate_uses_cos_cache(monkeypatch):
+    from app.services.image_storage import CosImageStorage
+
+    client = FakeCosClient(existing={"illustrations/abc.png"})
+    storage = CosImageStorage(
+        bucket="b-1250000000", region="ap-shanghai", prefix="illustrations", client=client
+    )
+    svc = ImageService(api_key="k", storage=storage)
+    name = cache_name(build_prompt("量子计算"))
+    client.existing.add(f"illustrations/{name}")
+
+    def boom(*args, **kwargs):
+        raise AssertionError("命中缓存不应调用生图接口")
+
+    monkeypatch.setattr(image_module.httpx, "post", boom)
+    result = svc.illustrate("量子计算")
+    assert result["cached"] is True
+    assert "cos.ap-shanghai.myqcloud.com" in result["url"]

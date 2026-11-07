@@ -1,6 +1,7 @@
 """应用配置。"""
 from pathlib import Path
 
+from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # backend 项目根目录（config.py 位于 app/core/ 下，往上三层）
@@ -78,6 +79,14 @@ class Settings(BaseSettings):
     image_size: str = "1024x1024"
     image_timeout: int = 180
     image_dir: str = str(BASE_DIR / "data" / "images")
+
+    # 图片存储：cos | local（未配 COS 凭证时自动退回 local）
+    image_backend: str = "cos"
+    cos_secret_id: SecretStr = SecretStr("")
+    cos_secret_key: SecretStr = SecretStr("")
+    cos_bucket: str = ""
+    cos_region: str = "ap-shanghai"
+    cos_prefix: str = "illustrations"
 
     @property
     def database_url(self) -> str:

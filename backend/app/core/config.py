@@ -25,11 +25,12 @@ class Settings(BaseSettings):
     # LLM 调用参数
     llm_timeout: int = 30
     llm_max_retries: int = 2
+    llm_max_tokens: int = 1500
     quiz_temperature: float = 0.4
     report_temperature: float = 0.5
 
     # 出题约束
-    default_question_count: int = 5
+    default_question_count: int = 3
     max_input_chars: int = 2000
 
     # 微信小程序

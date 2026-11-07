@@ -31,7 +31,7 @@ async function request<T>(path: string, method: 'GET' | 'POST' | 'PUT' | 'DELETE
 export function generateQuiz(userInput: string): Promise<Quiz> {
   return request<Quiz>('/api/v1/quiz/generate', 'POST', {
     user_input: userInput,
-    question_count: 5,
+    question_count: 3,
     difficulty: 'mixed'
   })
 }

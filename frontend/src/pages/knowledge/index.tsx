@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import Taro, { useDidShow } from '@tarojs/taro'
+import { useEffect, useState } from 'react'
+import Taro from '@tarojs/taro'
 import { Input, Text, View } from '@tarojs/components'
 import {
   createKnowledgeLink,
@@ -45,19 +45,25 @@ export default function Knowledge() {
     }
   }
 
-  useDidShow(() => {
+  useEffect(() => {
     ;(async () => {
       if (!isWeapp()) {
         setReady(true)
         setLoggedIn(!!getToken())
         return
       }
-      const user = await ensureLogin()
-      setLoggedIn(!!user)
-      setReady(true)
-      if (user) await refresh()
+      try {
+        const user = await ensureLogin()
+        setLoggedIn(!!user)
+        if (user) await refresh()
+      } catch {
+        setLoggedIn(false)
+      } finally {
+        setReady(true)
+      }
     })()
-  })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const handleUpload = async () => {
     setError('')

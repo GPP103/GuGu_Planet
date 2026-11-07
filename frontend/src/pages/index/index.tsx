@@ -9,6 +9,9 @@ import './index.scss'
 
 const HOT_TAGS = ['RAG 入门', '英语单词', '大模型基础']
 
+// 知识库依赖微信登录，仅小程序端提供入口；H5 保持原有功能不变
+const isWeapp = process.env.TARO_ENV === 'weapp'
+
 export default function Index() {
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
@@ -80,14 +83,16 @@ export default function Index() {
           ))}
         </View>
 
-        <View className='kb-entry glass' onClick={() => Taro.navigateTo({ url: '/pages/knowledge/index' })}>
-          <View className='icon doc' />
-          <View className='meta'>
-            <View className='t'>我的知识库</View>
-            <View className='s'>上传文档，基于自己的资料出题</View>
+        {isWeapp && (
+          <View className='kb-entry glass' onClick={() => Taro.navigateTo({ url: '/pages/knowledge/index' })}>
+            <View className='icon doc' />
+            <View className='meta'>
+              <View className='t'>我的知识库</View>
+              <View className='s'>上传文档，基于自己的资料出题</View>
+            </View>
+            <Text className='arrow'>›</Text>
           </View>
-          <Text className='arrow'>›</Text>
-        </View>
+        )}
 
         {!loading && (
           <View className='cta' onClick={handleGenerate}>

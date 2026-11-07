@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import Taro from '@tarojs/taro'
-import { Text, View } from '@tarojs/components'
+import { Image, Text, View } from '@tarojs/components'
 import Mascot from '../../components/Mascot'
-import { generateReport, submitRecord } from '../../utils/api'
+import { generateReport, getQuizImages, submitRecord } from '../../utils/api'
 import { ensureLogin } from '../../utils/auth'
-import { getQuiz, saveReport } from '../../utils/store'
+import { getQuiz, saveQuiz, saveReport } from '../../utils/store'
 import type { AnswerRecord, Question, Quiz, UserProfile } from '../../types'
 import './index.scss'
 
@@ -27,15 +27,54 @@ export default function QuizPage() {
   const [answers, setAnswers] = useState<Record<string, { selected: string[]; answered: boolean }>>({})
   const [submitting, setSubmitting] = useState(false)
   const [user, setUser] = useState<UserProfile | null>(null)
+  const [imgMap, setImgMap] = useState<Record<string, string>>({})
   const recordsRef = useRef<AnswerRecord[]>([])
   const startRef = useRef(0)
 
   useEffect(() => {
     const q = getQuiz()
-    if (q) {
-      setQuiz(q)
-      startRef.current = Date.now()
+    if (!q) return
+    setQuiz(q)
+    startRef.current = Date.now()
+    if (q.image_status !== 'pending') return
+
+    // 配图两段式：出题已返回，图片后台生成中，轮询补图
+    let timer: ReturnType<typeof setInterval> | null = null
+    let tries = 0
+    const stop = () => {
+      if (timer) clearInterval(timer)
     }
+    const poll = async () => {
+      try {
+        const res = await getQuizImages(q.quiz_id)
+        const map: Record<string, string> = {}
+        res.images.forEach((i) => {
+          map[i.question_id] = i.image_url
+        })
+        setImgMap(map)
+        if (res.status === 'done' || res.status === 'failed') {
+          stop()
+          const merged: Quiz = {
+            ...q,
+            image_status: 'done',
+            questions: q.questions.map((item) => ({
+              ...item,
+              image_url: map[item.id] || item.image_url || null
+            }))
+          }
+          setQuiz(merged)
+          saveQuiz(merged)
+          if (res.hint) Taro.showToast({ title: res.hint, icon: 'none' })
+        } else if (tries++ >= 24) {
+          stop()
+        }
+      } catch {
+        if (tries++ >= 24) stop()
+      }
+    }
+    poll()
+    timer = setInterval(poll, 5000)
+    return stop
   }, [])
 
   useEffect(() => {
@@ -210,6 +249,15 @@ export default function QuizPage() {
             />
           ))}
         </View>
+
+        {(imgMap[question.id] || question.image_url) && (
+          <Image
+            className='qimg'
+            src={(imgMap[question.id] || question.image_url) as string}
+            mode='widthFix'
+            lazyLoad
+          />
+        )}
 
         <View className='qcard glass'>
           <Text className='qtype'>{TYPE_LABEL[question.type] || '单选题'}</Text>

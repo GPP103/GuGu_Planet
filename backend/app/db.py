@@ -30,6 +30,6 @@ def get_db():
 
 def init_db():
     """建表（幂等）。导入模型以确保注册到 metadata。"""
-    from app.models import knowledge_base, question_bank, quiz_record, user  # noqa: F401
+    from app.models import image_quota, knowledge_base, question_bank, quiz_record, user  # noqa: F401
 
     Base.metadata.create_all(bind=engine)

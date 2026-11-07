@@ -197,3 +197,59 @@
 
 
 
+
+.img-toggle {
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+  border-radius: 24rpx;
+  padding: 20rpx 24rpx;
+
+  .box {
+    position: relative;
+    width: 76rpx;
+    height: 44rpx;
+    border-radius: 999rpx;
+    background: rgba(255, 255, 255, 0.14);
+    flex-shrink: 0;
+    transition: background 0.2s ease;
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: 5rpx;
+      left: 5rpx;
+      width: 34rpx;
+      height: 34rpx;
+      border-radius: 50%;
+      background: #e8e4ff;
+      transition: transform 0.2s ease, background 0.2s ease;
+    }
+
+    &.on {
+      background: linear-gradient(135deg, #f5c26b, #c88a2a);
+
+      &::after {
+        transform: translateX(32rpx);
+        background: #fff;
+      }
+    }
+  }
+
+  .txt {
+    flex: 1;
+    min-width: 0;
+
+    .t {
+      font-size: 26rpx;
+      font-weight: 600;
+      color: #f5f3ff;
+    }
+
+    .s {
+      font-size: 21rpx;
+      color: #9a93bd;
+      margin-top: 4rpx;
+    }
+  }
+}

@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
 import Taro from '@tarojs/taro'
-import { Text, View } from '@tarojs/components'
+import { Image, Text, View } from '@tarojs/components'
 import Mascot from '../../components/Mascot'
 import TabBar from '../../components/TabBar'
-import { getHistory, getWrongList, removeWrong } from '../../utils/api'
+import { getHistory, getWrongList, illustrateQuestion, removeWrong } from '../../utils/api'
 import { ensureLogin } from '../../utils/auth'
 import { saveQuiz } from '../../utils/store'
-import type { HistoryItem, Question, QuestionType, Quiz, WrongItem } from '../../types'
+import type { HistoryItem, Question, QuestionType, Quiz, RecordItem, WrongItem } from '../../types'
 import './index.scss'
 
 const TYPE_LABEL: Record<string, string> = {
@@ -22,6 +22,7 @@ export default function RecordsPage() {
   const [expandedId, setExpandedId] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
   const [loggedIn, setLoggedIn] = useState(true)
+  const [illustrating, setIllustrating] = useState<string>('')
 
   const load = async () => {
     setLoading(true)
@@ -83,6 +84,37 @@ export default function RecordsPage() {
     }
     saveQuiz(quiz)
     Taro.redirectTo({ url: '/pages/quiz/index' })
+  }
+
+  const doIllustrate = async (recordId: number, itemIndex: number, item: RecordItem) => {
+    const key = `${recordId}_${itemIndex}`
+    if (illustrating) return
+    setIllustrating(key)
+    Taro.showLoading({ title: '生成配图中，约 1 分钟', mask: true })
+    try {
+      const res = await illustrateQuestion(item.stem, item.knowledge_point || '', '')
+      if (res.hint) {
+        Taro.hideLoading()
+        Taro.showToast({ title: res.hint, icon: 'none' })
+        return
+      }
+      if (res.url) {
+        setHistory((prev) =>
+          prev.map((h) =>
+            h.id === recordId
+              ? { ...h, items: h.items.map((it, i) => (i === itemIndex ? { ...it, image_url: res.url } : it)) }
+              : h
+          )
+        )
+        Taro.hideLoading()
+        Taro.showToast({ title: res.cached ? '已从图库取回' : '配图已生成', icon: 'none' })
+      }
+    } catch (e) {
+      Taro.hideLoading()
+      Taro.showToast({ title: (e as Error)?.message || '配图失败', icon: 'none' })
+    } finally {
+      setIllustrating('')
+    }
   }
 
   const doRemoveWrong = async (id: number) => {
@@ -174,6 +206,18 @@ export default function RecordsPage() {
                               </Text>
                             </View>
                             <View className='d-stem'>{item.stem}</View>
+                            {item.image_url ? (
+                              <Image className='d-img' src={item.image_url} mode='widthFix' lazyLoad />
+                            ) : (
+                              item.type !== 'judge' && (
+                                <View
+                                  className='d-illustrate'
+                                  onClick={() => doIllustrate(h.id, i, item)}
+                                >
+                                  {illustrating === `${h.id}_${i}` ? '生成中…' : '+ 为这题配图'}
+                                </View>
+                              )
+                            )}
                             {item.options.length > 0 && (
                               <View className='d-opts'>
                                 {item.options.map((opt) => {

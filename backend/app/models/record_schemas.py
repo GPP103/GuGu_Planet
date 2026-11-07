@@ -13,6 +13,7 @@ class QuestionIn(BaseModel):
     explanation: str = ""
     knowledge_point: str = ""
     difficulty: str = "medium"
+    image_url: str | None = None
 
 
 class AnswerRecordIn(BaseModel):
@@ -44,6 +45,7 @@ class RecordItem(BaseModel):
     is_correct: bool = False
     explanation: str = ""
     knowledge_point: str = ""
+    image_url: str | None = None
 
 
 class HistoryItem(BaseModel):

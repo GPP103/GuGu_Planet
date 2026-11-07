@@ -15,6 +15,7 @@ export interface Question {
   explanation: string
   knowledge_point: string
   difficulty: Difficulty
+  image_url?: string | null
 }
 
 export interface Source {
@@ -31,6 +32,7 @@ export interface Quiz {
   questions: Question[]
   sources: Source[]
   freshness: 'fresh' | 'stale' | 'kb'
+  image_status?: 'none' | 'pending' | 'done'
 }
 
 export interface KnowledgeBase {
@@ -82,6 +84,7 @@ export interface RecordItem {
   is_correct: boolean
   explanation: string
   knowledge_point: string
+  image_url?: string | null
 }
 
 export interface HistoryItem {

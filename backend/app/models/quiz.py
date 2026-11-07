@@ -18,6 +18,7 @@ class Question(BaseModel):
     explanation: str
     knowledge_point: str
     difficulty: Literal["easy", "medium", "hard"]
+    image_url: str | None = None
 
 
 class Source(BaseModel):
@@ -35,6 +36,8 @@ class Quiz(BaseModel):
     questions: list[Question]
     sources: list[Source] = []
     freshness: Literal["fresh", "stale", "kb"] = "stale"
+    # 配图状态：none=未请求 / pending=后台生成中 / done=已完成
+    image_status: Literal["none", "pending", "done"] = "none"
 
 
 class QuizGenerateRequest(BaseModel):
@@ -42,3 +45,4 @@ class QuizGenerateRequest(BaseModel):
     question_count: int = Field(default=5, ge=1, le=10)
     difficulty: str = "mixed"
     knowledge_base_id: int | None = None
+    with_images: bool = False

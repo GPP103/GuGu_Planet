@@ -98,3 +98,14 @@ def client(db_session):
     with TestClient(app) as c:
         yield c
     app.dependency_overrides.clear()
+
+
+@pytest.fixture(autouse=True)
+def _local_question_image_storage(monkeypatch, tmp_path):
+    """题目配图统一落到临时目录，避免测试写真实 COS。"""
+    from app.services import question_image_service
+    from app.services.image_storage import LocalImageStorage
+
+    store = LocalImageStorage(str(tmp_path / "qimg"), url_prefix="/static/images/questions")
+    monkeypatch.setattr(question_image_service, "get_question_image_storage", lambda: store)
+    yield store

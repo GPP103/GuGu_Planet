@@ -1,19 +1,30 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Taro from '@tarojs/taro'
 import { Text, Textarea, View } from '@tarojs/components'
 import Mascot from '../../components/Mascot'
 import TabBar from '../../components/TabBar'
 import { generateQuiz } from '../../utils/api'
+import { ensureLogin } from '../../utils/auth'
 import { saveQuiz } from '../../utils/store'
 import './index.scss'
 
 const HOT_TAGS = ['RAG 入门', '英语单词', '大模型基础']
+const isWeapp = process.env.TARO_ENV === 'weapp'
 
 export default function Index() {
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [elapsed, setElapsed] = useState('0.0')
   const [error, setError] = useState('')
+  const [loggedIn, setLoggedIn] = useState(false)
+  const [withImages, setWithImages] = useState(false)
+
+  useEffect(() => {
+    if (!isWeapp) return
+    ensureLogin()
+      .then((u) => setLoggedIn(!!u))
+      .catch(() => {})
+  }, [])
 
   const handleGenerate = async () => {
     const text = input.trim()
@@ -28,7 +39,7 @@ export default function Index() {
       setElapsed(((Date.now() - start) / 1000).toFixed(1))
     }, 100)
     try {
-      const quiz = await generateQuiz(text)
+      const quiz = await generateQuiz(text, undefined, withImages)
       saveQuiz(quiz)
       clearInterval(timer)
       Taro.redirectTo({ url: '/pages/quiz/index' })
@@ -63,6 +74,16 @@ export default function Index() {
             maxlength={2000}
           />
         </View>
+
+        {isWeapp && loggedIn && (
+          <View className='img-toggle glass' onClick={() => setWithImages((v) => !v)}>
+            <View className={`box ${withImages ? 'on' : ''}`} />
+            <View className='txt'>
+              <View className='t'>为题目生成配图</View>
+              <View className='s'>每题一张插图，帮助记忆（约多等 1 分钟）</View>
+            </View>
+          </View>
+        )}
 
         <View className='sec-title'>热门主题</View>
         <View className='tags'>

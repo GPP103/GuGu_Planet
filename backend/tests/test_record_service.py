@@ -115,3 +115,59 @@ def test_remove_wrong_wrong_owner(db_session):
     wrong = svc.wrong_list(u)[0]
     # 别的用户删除该错题应失败
     assert svc.remove_wrong(other, wrong.id) is False
+
+
+def test_items_keep_image_url(db_session):
+    from app.models.user import User
+    from app.services.record_service import RecordService
+
+    user = User(openid="img_record_user", nickname="带图用户")
+    db_session.add(user)
+    db_session.commit()
+    db_session.refresh(user)
+
+    questions = [
+        {
+            "id": "q1",
+            "type": "single",
+            "stem": "苹果是什么颜色",
+            "options": [{"key": "A", "text": "红色"}],
+            "answer": ["A"],
+            "explanation": "苹果多为红色",
+            "knowledge_point": "apple",
+            "image_url": "https://cos/apple.png",
+        }
+    ]
+    records = [{"question_id": "q1", "selected_answers": ["A"], "is_correct": True}]
+    RecordService(db_session).submit(user, "英语单词", questions, records)
+
+    hist = RecordService(db_session).history(user)
+    assert hist[0].items[0].image_url == "https://cos/apple.png"
+
+
+def test_items_keep_image_url(db_session):
+    from app.models.user import User
+    from app.services.record_service import RecordService
+
+    user = User(openid="img_record_user", nickname="带图用户")
+    db_session.add(user)
+    db_session.commit()
+    db_session.refresh(user)
+
+    questions = [
+        {
+            "id": "q1",
+            "type": "single",
+            "stem": "苹果是什么颜色",
+            "options": [{"key": "A", "text": "红色"}],
+            "answer": ["A"],
+            "explanation": "苹果多为红色",
+            "knowledge_point": "apple",
+            "image_url": "https://cos/apple.png",
+        }
+    ]
+    records = [{"question_id": "q1", "selected_answers": ["A"], "is_correct": True}]
+    RecordService(db_session).submit(user, "英语单词", questions, records)
+
+    hist = RecordService(db_session).history(user)
+    assert hist[0].items[0].image_url == "https://cos/apple.png"

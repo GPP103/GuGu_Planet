@@ -35,12 +35,37 @@ function unwrap<T>(body: ApiResponse<T>): T {
   return body.data as T
 }
 
-export function generateQuiz(userInput: string, knowledgeBaseId?: number): Promise<Quiz> {
+export function generateQuiz(userInput: string, knowledgeBaseId?: number, withImages?: boolean): Promise<Quiz> {
   return request<Quiz>('/api/v1/quiz/generate', 'POST', {
     user_input: userInput,
     question_count: 3,
     difficulty: 'mixed',
-    ...(knowledgeBaseId != null ? { knowledge_base_id: knowledgeBaseId } : {})
+    ...(knowledgeBaseId != null ? { knowledge_base_id: knowledgeBaseId } : {}),
+    ...(withImages ? { with_images: true } : {})
+  })
+}
+
+export interface QuizImagesResult {
+  status: 'none' | 'pending' | 'done' | 'failed'
+  images: { question_id: string; image_url: string }[]
+  hint: string | null
+}
+
+export function getQuizImages(quizId: string): Promise<QuizImagesResult> {
+  return request<QuizImagesResult>(`/api/v1/quiz/images?quiz_id=${encodeURIComponent(quizId)}`, 'GET')
+}
+
+export interface QuestionImageResult {
+  url: string | null
+  cached: boolean
+  hint: string | null
+}
+
+export function illustrateQuestion(stem: string, knowledgePoint: string, topic: string): Promise<QuestionImageResult> {
+  return request<QuestionImageResult>('/api/v1/quiz/question-image', 'POST', {
+    stem,
+    knowledge_point: knowledgePoint,
+    topic
   })
 }
 

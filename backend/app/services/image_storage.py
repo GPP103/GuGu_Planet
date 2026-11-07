@@ -12,15 +12,16 @@ STATIC_PREFIX = "/static/images"
 
 
 class LocalImageStorage:
-    def __init__(self, root: str | None = None):
+    def __init__(self, root: str | None = None, url_prefix: str | None = None):
         self.root = root if root is not None else settings.image_dir
+        self.url_prefix = url_prefix if url_prefix is not None else STATIC_PREFIX
         os.makedirs(self.root, exist_ok=True)
 
     def exists(self, name: str) -> bool:
         return os.path.isfile(os.path.join(self.root, name))
 
     def url_for(self, name: str) -> str:
-        return f"{STATIC_PREFIX}/{name}"
+        return f"{self.url_prefix}/{name}"
 
     def save(self, name: str, data: bytes) -> str:
         path = os.path.join(self.root, name)
@@ -87,3 +88,16 @@ def get_image_storage():
         except Exception:  # noqa: BLE001 SDK 缺失/初始化失败 → 退回本地
             pass
     return LocalImageStorage()
+
+
+def get_question_image_storage():
+    """题目配图存储：与海报插画分开前缀/目录，便于统计与清理。"""
+    if settings.image_backend == "cos" and settings.cos_bucket and settings.cos_secret_id.get_secret_value():
+        try:
+            return CosImageStorage(prefix=settings.question_image_prefix)
+        except Exception:  # noqa: BLE001
+            pass
+    return LocalImageStorage(
+        root=os.path.join(settings.image_dir, "questions"),
+        url_prefix=f"{STATIC_PREFIX}/questions",
+    )

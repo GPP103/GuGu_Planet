@@ -88,6 +88,14 @@ class Settings(BaseSettings):
     cos_region: str = "ap-shanghai"
     cos_prefix: str = "illustrations"
 
+    # 题目配图（闯关时按题生成）
+    question_image_model: str = "qwen-image-3.0"
+    question_image_size: str = "512x512"
+    question_image_concurrency: int = 3
+    question_image_timeout: int = 150
+    question_image_daily_limit: int = 20
+    question_image_prefix: str = "questions"
+
     @property
     def database_url(self) -> str:
         return (

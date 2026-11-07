@@ -54,6 +54,7 @@ class RecordService:
                     "is_correct": r.get("is_correct", False),
                     "explanation": q.get("explanation", ""),
                     "knowledge_point": q.get("knowledge_point", ""),
+                    "image_url": q.get("image_url"),
                 }
             )
 

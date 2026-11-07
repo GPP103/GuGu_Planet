@@ -181,12 +181,6 @@
     align-items: center;
     gap: 10rpx;
 
-    .sub {
-      font-size: 19rpx;
-      color: #8d86b8;
-      margin-top: -4rpx;
-    }
-
     .num {
       font-size: 44rpx;
       font-weight: 700;
@@ -277,61 +271,92 @@
   }
 }
 
-.menu {
+
+.kb-row {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
   border-radius: 28rpx;
-  overflow: hidden;
+  padding: 26rpx 26rpx;
 
-  .menu-item {
-    display: flex;
-    align-items: center;
-    gap: 20rpx;
-    padding: 24rpx 26rpx;
+  .kb-icon {
+    width: 52rpx;
+    height: 52rpx;
+    border-radius: 14rpx;
+    background: linear-gradient(135deg, #cdc5ff, #8b83e8 60%, #5a4fc4);
+    box-shadow: 0 0 20rpx rgba(139, 131, 232, 0.4);
+  }
 
-    & + .menu-item {
-      border-top: 1px solid rgba(255, 255, 255, 0.08);
-    }
+  .kb-text {
+    flex: 1;
+    font-size: 27rpx;
+    font-weight: 600;
+    color: #f5f3ff;
+  }
 
-    .m-icon {
-      width: 56rpx;
-      height: 56rpx;
-      border-radius: 16rpx;
-      flex-shrink: 0;
+  .kb-arrow {
+    color: #8d86b8;
+    font-size: 28rpx;
+  }
+}
 
-      &.doc {
-        background: linear-gradient(135deg, #cdc5ff, #8b83e8 60%, #5a4fc4);
-      }
+.level-item {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  border-radius: 28rpx;
+  padding: 24rpx 26rpx;
 
-      &.star {
-        background: linear-gradient(135deg, #ffe9bd, #f5c26b 60%, #c88a2a);
-      }
+  .level-dot {
+    width: 44rpx;
+    height: 44rpx;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background: radial-gradient(circle at 32% 30%, #cdc5ff, #8b83e8 60%, #3c3489);
 
-      &.wrong {
-        background: linear-gradient(135deg, #ffc9c9, #ff8f8f 60%, #c95f5f);
-      }
-    }
-
-    .m-main {
-      flex: 1;
-      min-width: 0;
-      display: flex;
-      flex-direction: column;
-      gap: 4rpx;
-
-      .m-title {
-        font-size: 27rpx;
-        font-weight: 600;
-        color: #f5f3ff;
-      }
-
-      .m-sub {
-        font-size: 21rpx;
-        color: #b6aedb;
-      }
-    }
-
-    .m-arrow {
-      color: #8d86b8;
-      font-size: 28rpx;
+    &.done {
+      background: radial-gradient(circle at 32% 30%, #ffe9bd, #f5c26b 60%, #c88a2a);
+      box-shadow: 0 0 20rpx rgba(245, 194, 107, 0.5);
     }
   }
+
+  .level-main {
+    flex: 1;
+    min-width: 0;
+
+    .level-t {
+      font-size: 26rpx;
+      font-weight: 600;
+      color: #f5f3ff;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .level-s {
+      font-size: 21rpx;
+      color: #b6aedb;
+      margin-top: 6rpx;
+    }
+  }
+
+  .level-arrow {
+    color: #8d86b8;
+    font-size: 28rpx;
+  }
+}
+
+.level-empty {
+  border-radius: 28rpx;
+  padding: 28rpx 26rpx;
+  font-size: 23rpx;
+  color: #9a93bd;
+  text-align: center;
+}
+
+.level-more {
+  text-align: center;
+  font-size: 23rpx;
+  color: #8d86b8;
+  padding: 12rpx 0 4rpx;
 }

@@ -4,9 +4,16 @@ import { Button, Form, Input, Text, View } from '@tarojs/components'
 import Mascot from '../../components/Mascot'
 import TabBar from '../../components/TabBar'
 import { cacheUser, ensureLogin, logout } from '../../utils/auth'
-import { updateMe } from '../../utils/api'
-import type { UserProfile } from '../../types'
+import { getHistory, updateMe } from '../../utils/api'
+import type { HistoryItem, UserProfile } from '../../types'
 import './index.scss'
+
+interface LevelItem {
+  topic: string
+  plays: number
+  best: number
+  lastAt: string
+}
 
 function readFileAsBase64(filePath: string): Promise<string | null> {
   return new Promise((resolve) => {
@@ -19,11 +26,34 @@ function readFileAsBase64(filePath: string): Promise<string | null> {
   })
 }
 
+/** 按主题聚合历史：一主题一条，看次数与最高正确率（与记录页的时间流水区分开） */
+function aggregateLevels(history: HistoryItem[]): LevelItem[] {
+  const map = new Map<string, LevelItem>()
+  history.forEach((h) => {
+    const topic = h.topic || '未命名主题'
+    const prev = map.get(topic)
+    if (prev) {
+      prev.plays += 1
+      prev.best = Math.max(prev.best, h.accuracy || 0)
+      if ((h.created_at || '') > prev.lastAt) prev.lastAt = h.created_at || ''
+    } else {
+      map.set(topic, {
+        topic,
+        plays: 1,
+        best: h.accuracy || 0,
+        lastAt: h.created_at || ''
+      })
+    }
+  })
+  return Array.from(map.values()).sort((a, b) => (a.lastAt < b.lastAt ? 1 : -1))
+}
+
 export default function ProfilePage() {
   const [user, setUser] = useState<UserProfile | null>(null)
   const [nickname, setNickname] = useState('')
   const [editing, setEditing] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [levels, setLevels] = useState<LevelItem[]>([])
 
   const load = async () => {
     setLoading(true)
@@ -31,6 +61,12 @@ export default function ProfilePage() {
     if (u) {
       setUser(u)
       setNickname(u.nickname)
+      try {
+        const history = (await getHistory()) || []
+        setLevels(aggregateLevels(history).slice(0, 3))
+      } catch {
+        setLevels([])
+      }
     }
     setLoading(false)
   }
@@ -172,9 +208,6 @@ export default function ProfilePage() {
           <View className='stat'>
             <View className='num'>{user.accuracy}%</View>
             <View className='label'>正确率</View>
-            <View className='sub'>
-              {user.total_correct}/{user.total_answered}
-            </View>
           </View>
           <View className='stat'>
             <View className='num'>{user.current_streak}</View>
@@ -182,44 +215,46 @@ export default function ProfilePage() {
           </View>
         </View>
 
-        <View className='sec-title'>我的功能</View>
-        <View className='menu glass'>
-          {process.env.TARO_ENV === 'weapp' && (
-            <View
-              className='menu-item'
-              onClick={() => Taro.navigateTo({ url: '/pages/knowledge/index' })}
-            >
-              <View className='m-icon doc' />
-              <View className='m-main'>
-                <View className='m-title'>我的知识库</View>
-                <View className='m-sub'>上传文档，用自己的资料出题</View>
+        {process.env.TARO_ENV === 'weapp' && (
+          <View
+            className='kb-row glass'
+            onClick={() => Taro.navigateTo({ url: '/pages/knowledge/index' })}
+          >
+            <View className='kb-icon' />
+            <View className='kb-text'>我的知识库</View>
+            <Text className='kb-arrow'>›</Text>
+          </View>
+        )}
+
+        <View className='sec-title'>我的关卡</View>
+        {levels.length === 0 ? (
+          <View className='level-empty glass'>完成一次闯关后，主题会出现在这里</View>
+        ) : (
+          <>
+            {levels.map((lv) => (
+              <View
+                key={lv.topic}
+                className='level-item glass'
+                onClick={() => Taro.navigateTo({ url: '/pages/records/index' })}
+              >
+                <View className={`level-dot ${lv.best >= 80 ? 'done' : ''}`} />
+                <View className='level-main'>
+                  <View className='level-t'>{lv.topic}</View>
+                  <View className='level-s'>
+                    {lv.plays} 次 · 最高 {lv.best}%
+                  </View>
+                </View>
+                <Text className='level-arrow'>›</Text>
               </View>
-              <Text className='m-arrow'>›</Text>
+            ))}
+            <View
+              className='level-more'
+              onClick={() => Taro.navigateTo({ url: '/pages/records/index' })}
+            >
+              查看全部闯关记录 ›
             </View>
-          )}
-          <View
-            className='menu-item'
-            onClick={() => Taro.navigateTo({ url: '/pages/records/index' })}
-          >
-            <View className='m-icon star' />
-            <View className='m-main'>
-              <View className='m-title'>答题记录</View>
-              <View className='m-sub'>历次闯关成绩与逐题详情</View>
-            </View>
-            <Text className='m-arrow'>›</Text>
-          </View>
-          <View
-            className='menu-item'
-            onClick={() => Taro.navigateTo({ url: '/pages/records/index?tab=wrong' })}
-          >
-            <View className='m-icon wrong' />
-            <View className='m-main'>
-              <View className='m-title'>错题本</View>
-              <View className='m-sub'>错题重练，巩固薄弱点</View>
-            </View>
-            <Text className='m-arrow'>›</Text>
-          </View>
-        </View>
+          </>
+        )}
 
         <View className='logout' onClick={doLogout}>
           退出登录

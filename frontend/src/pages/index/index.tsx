@@ -3,32 +3,67 @@ import Taro from '@tarojs/taro'
 import { Text, Textarea, View } from '@tarojs/components'
 import Mascot from '../../components/Mascot'
 import TabBar from '../../components/TabBar'
-import { generateQuiz, getHistory } from '../../utils/api'
-import { getToken, saveQuiz } from '../../utils/store'
-import type { HistoryItem } from '../../types'
+import { generateQuiz, getHistory, getWrongList } from '../../utils/api'
+import { ensureLogin } from '../../utils/auth'
+import { saveQuiz } from '../../utils/store'
 import './index.scss'
 
 const HOT_TAGS = ['RAG 入门', '英语单词', '大模型基础']
 
-// 答题历史依赖微信登录，仅小程序端展示；H5 保持原有功能不变
+// 学习提醒依赖微信登录，仅小程序端展示；H5 保持原有功能不变
 const isWeapp = process.env.TARO_ENV === 'weapp'
+
+interface Tip {
+  text: string
+  action: string
+  type: 'wrong' | 'start' | 'again'
+}
 
 export default function Index() {
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [elapsed, setElapsed] = useState('0.0')
   const [error, setError] = useState('')
-  const [history, setHistory] = useState<HistoryItem[]>([])
+  const [tip, setTip] = useState<Tip | null>(null)
 
   useEffect(() => {
-    if (!isWeapp || !getToken()) return
-    getHistory()
-      .then((list) => setHistory((list || []).slice(0, 3)))
-      .catch(() => {})
+    ;(async () => {
+      if (!isWeapp) return
+      const user = await ensureLogin().catch(() => null)
+      if (!user) return
+      try {
+        const [wrong, history] = await Promise.all([getWrongList(), getHistory()])
+        const d = new Date()
+        const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(
+          d.getDate()
+        ).padStart(2, '0')}`
+        const todayCount = (history || []).filter((h) => (h.created_at || '').startsWith(today)).length
+        if ((wrong || []).length > 0) {
+          setTip({ text: `你有 ${wrong.length} 道错题待重练`, action: '去重练', type: 'wrong' })
+        } else if (todayCount === 0) {
+          setTip({ text: '今天还没闯关，3 题热身一下', action: '开始', type: 'start' })
+        } else {
+          setTip({ text: `今天已完成 ${todayCount} 次闯关，保持节奏`, action: '再来一组', type: 'again' })
+        }
+      } catch {
+        setTip(null)
+      }
+    })()
   }, [])
 
-  const handleGenerate = async () => {
-    const text = input.trim()
+  const onTipAction = () => {
+    if (!tip) return
+    if (tip.type === 'wrong') {
+      Taro.navigateTo({ url: '/pages/records/index?tab=wrong' })
+      return
+    }
+    const topic = HOT_TAGS[Math.floor(Math.random() * HOT_TAGS.length)]
+    setInput(topic)
+    handleGenerate(topic)
+  }
+
+  const handleGenerate = async (preset?: string) => {
+    const text = (preset ?? input).trim()
     if (!text) {
       setError('先输入想学的知识，再开始远征')
       return
@@ -93,7 +128,7 @@ export default function Index() {
         </View>
 
         {!loading && (
-          <View className='cta' onClick={handleGenerate}>
+          <View className='cta' onClick={() => handleGenerate()}>
             <View className='rocket' />
             开始远征
           </View>
@@ -115,30 +150,13 @@ export default function Index() {
           </View>
         )}
 
-        {isWeapp && (
-          <>
-            <View className='sec-title'>我的关卡</View>
-            {history.length === 0 ? (
-              <View className='level-empty glass'>还没有闯关记录，完成一次远征后会出现在这里</View>
-            ) : (
-              history.map((h) => (
-                <View
-                  key={h.id}
-                  className='level-item glass'
-                  onClick={() => Taro.navigateTo({ url: '/pages/records/index' })}
-                >
-                  <View className={`icon ${h.accuracy >= 80 ? 'done' : ''}`} />
-                  <View className='meta'>
-                    <View className='t'>{h.topic || '未命名主题'}</View>
-                    <View className='s'>
-                      {h.question_count} 题 · 正确率 {h.accuracy}%
-                    </View>
-                  </View>
-                  <Text className='arrow'>›</Text>
-                </View>
-              ))
-            )}
-          </>
+        {isWeapp && tip && (
+          <View className='tip-bar glass'>
+            <View className='tip-text'>{tip.text}</View>
+            <View className='tip-btn' onClick={onTipAction}>
+              {tip.action}
+            </View>
+          </View>
         )}
       </View>
       <TabBar active='home' />

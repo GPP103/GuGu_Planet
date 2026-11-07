@@ -1,15 +1,16 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Taro from '@tarojs/taro'
 import { Text, Textarea, View } from '@tarojs/components'
 import Mascot from '../../components/Mascot'
 import TabBar from '../../components/TabBar'
-import { generateQuiz } from '../../utils/api'
-import { saveQuiz } from '../../utils/store'
+import { generateQuiz, getHistory } from '../../utils/api'
+import { getToken, saveQuiz } from '../../utils/store'
+import type { HistoryItem } from '../../types'
 import './index.scss'
 
 const HOT_TAGS = ['RAG 入门', '英语单词', '大模型基础']
 
-// 知识库依赖微信登录，仅小程序端提供入口；H5 保持原有功能不变
+// 答题历史依赖微信登录，仅小程序端展示；H5 保持原有功能不变
 const isWeapp = process.env.TARO_ENV === 'weapp'
 
 export default function Index() {
@@ -17,6 +18,14 @@ export default function Index() {
   const [loading, setLoading] = useState(false)
   const [elapsed, setElapsed] = useState('0.0')
   const [error, setError] = useState('')
+  const [history, setHistory] = useState<HistoryItem[]>([])
+
+  useEffect(() => {
+    if (!isWeapp || !getToken()) return
+    getHistory()
+      .then((list) => setHistory((list || []).slice(0, 3)))
+      .catch(() => {})
+  }, [])
 
   const handleGenerate = async () => {
     const text = input.trim()
@@ -83,17 +92,6 @@ export default function Index() {
           ))}
         </View>
 
-        {isWeapp && (
-          <View className='kb-entry glass' onClick={() => Taro.navigateTo({ url: '/pages/knowledge/index' })}>
-            <View className='icon doc' />
-            <View className='meta'>
-              <View className='t'>我的知识库</View>
-              <View className='s'>上传文档，基于自己的资料出题</View>
-            </View>
-            <Text className='arrow'>›</Text>
-          </View>
-        )}
-
         {!loading && (
           <View className='cta' onClick={handleGenerate}>
             <View className='rocket' />
@@ -117,23 +115,31 @@ export default function Index() {
           </View>
         )}
 
-        <View className='sec-title'>我的关卡</View>
-        <View className='level-item glass'>
-          <View className='icon done' />
-          <View className='meta'>
-            <View className='t'>星图 · 大模型基础</View>
-            <View className='s'>5 题 · 已点亮</View>
-          </View>
-          <Text className='arrow'>›</Text>
-        </View>
-        <View className='level-item glass'>
-          <View className='icon' />
-          <View className='meta'>
-            <View className='t'>星图 · 网络原理</View>
-            <View className='s'>5 题 · 待探索</View>
-          </View>
-          <Text className='arrow'>›</Text>
-        </View>
+        {isWeapp && (
+          <>
+            <View className='sec-title'>我的关卡</View>
+            {history.length === 0 ? (
+              <View className='level-empty glass'>还没有闯关记录，完成一次远征后会出现在这里</View>
+            ) : (
+              history.map((h) => (
+                <View
+                  key={h.id}
+                  className='level-item glass'
+                  onClick={() => Taro.navigateTo({ url: '/pages/records/index' })}
+                >
+                  <View className={`icon ${h.accuracy >= 80 ? 'done' : ''}`} />
+                  <View className='meta'>
+                    <View className='t'>{h.topic || '未命名主题'}</View>
+                    <View className='s'>
+                      {h.question_count} 题 · 正确率 {h.accuracy}%
+                    </View>
+                  </View>
+                  <Text className='arrow'>›</Text>
+                </View>
+              ))
+            )}
+          </>
+        )}
       </View>
       <TabBar active='home' />
     </View>

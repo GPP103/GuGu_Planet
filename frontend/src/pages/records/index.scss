@@ -363,3 +363,41 @@
     text-align: center;
   }
 }
+
+.retry-bar {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  border-radius: 26rpx;
+  padding: 24rpx 28rpx;
+  background: rgba(245, 194, 107, 0.1);
+  border: 1px solid rgba(245, 194, 107, 0.32);
+
+  .retry-main {
+    flex: 1;
+    min-width: 0;
+
+    .retry-t {
+      font-size: 27rpx;
+      font-weight: 700;
+      color: #ffe3a3;
+    }
+
+    .retry-s {
+      font-size: 21rpx;
+      color: #b6aedb;
+      margin-top: 6rpx;
+    }
+  }
+
+  .retry-btn {
+    flex-shrink: 0;
+    font-size: 25rpx;
+    font-weight: 700;
+    color: #2a1c05;
+    padding: 12rpx 32rpx;
+    border-radius: 999rpx;
+    background: linear-gradient(135deg, #ffe9bd, #f5c26b 55%, #e0a54a);
+    box-shadow: 0 8rpx 20rpx -8rpx rgba(245, 194, 107, 0.5);
+  }
+}

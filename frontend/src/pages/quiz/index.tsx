@@ -112,10 +112,11 @@ export default function QuizPage() {
   const finish = async () => {
     if (!quiz || submitting) return
     setSubmitting(true)
+    // 先静默登录（仅小程序端；H5 跳过），再落库答题记录——记录与报告解耦，报告失败也能查记录
+    await ensureLogin().catch(() => null)
+    await submitRecord(quiz.title, quiz.questions, recordsRef.current).catch(() => {})
+
     try {
-      // 先静默登录（仅小程序端，H5 直接跳过），再提交完整答题记录；失败不阻断主流程
-      await ensureLogin().catch(() => null)
-      await submitRecord(quiz.title, quiz.questions, recordsRef.current).catch(() => {})
       const report = await generateReport(
         quiz.quiz_id,
         quiz.title,
@@ -126,7 +127,11 @@ export default function QuizPage() {
       Taro.redirectTo({ url: '/pages/report/index' })
     } catch {
       setSubmitting(false)
-      Taro.showToast({ title: '报告生成失败，请重试', icon: 'none' })
+      Taro.showToast({ title: '报告生成失败，答题记录已保存', icon: 'none' })
+      const isWeapp = process.env.TARO_ENV === 'weapp'
+      setTimeout(() => {
+        Taro.redirectTo({ url: isWeapp ? '/pages/records/index' : '/pages/index/index' })
+      }, 1200)
     }
   }
 
@@ -180,7 +185,7 @@ export default function QuizPage() {
             <Text className='src-tip'>{quiz.sources[0]?.title || '个人知识库'}</Text>
           </View>
         )}
-        {quiz.freshness === 'stale' && (
+        {quiz.freshness === 'stale' && quiz.source_type !== 'wrong' && (
           <View className='src-bar stale'>
             <Text className='src-tag'>知识可能过时</Text>
             <Text className='src-tip'>基于模型知识生成，建议输入最新资料</Text>

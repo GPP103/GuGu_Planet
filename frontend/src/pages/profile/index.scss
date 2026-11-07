@@ -270,3 +270,62 @@
     box-shadow: 0 16rpx 40rpx -12rpx rgba(245, 194, 107, 0.5);
   }
 }
+
+.menu {
+  border-radius: 28rpx;
+  overflow: hidden;
+
+  .menu-item {
+    display: flex;
+    align-items: center;
+    gap: 20rpx;
+    padding: 24rpx 26rpx;
+
+    & + .menu-item {
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .m-icon {
+      width: 56rpx;
+      height: 56rpx;
+      border-radius: 16rpx;
+      flex-shrink: 0;
+
+      &.doc {
+        background: linear-gradient(135deg, #cdc5ff, #8b83e8 60%, #5a4fc4);
+      }
+
+      &.star {
+        background: linear-gradient(135deg, #ffe9bd, #f5c26b 60%, #c88a2a);
+      }
+
+      &.wrong {
+        background: linear-gradient(135deg, #ffc9c9, #ff8f8f 60%, #c95f5f);
+      }
+    }
+
+    .m-main {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4rpx;
+
+      .m-title {
+        font-size: 27rpx;
+        font-weight: 600;
+        color: #f5f3ff;
+      }
+
+      .m-sub {
+        font-size: 21rpx;
+        color: #b6aedb;
+      }
+    }
+
+    .m-arrow {
+      color: #8d86b8;
+      font-size: 28rpx;
+    }
+  }
+}

@@ -183,6 +183,45 @@ export default function ProfilePage() {
           <Text>答对 {user.total_correct} 题 / 共答 {user.total_answered} 题</Text>
         </View>
 
+        <View className='sec-title'>我的功能</View>
+        <View className='menu glass'>
+          {process.env.TARO_ENV === 'weapp' && (
+            <View
+              className='menu-item'
+              onClick={() => Taro.navigateTo({ url: '/pages/knowledge/index' })}
+            >
+              <View className='m-icon doc' />
+              <View className='m-main'>
+                <View className='m-title'>我的知识库</View>
+                <View className='m-sub'>上传文档，用自己的资料出题</View>
+              </View>
+              <Text className='m-arrow'>›</Text>
+            </View>
+          )}
+          <View
+            className='menu-item'
+            onClick={() => Taro.navigateTo({ url: '/pages/records/index' })}
+          >
+            <View className='m-icon star' />
+            <View className='m-main'>
+              <View className='m-title'>答题记录</View>
+              <View className='m-sub'>历次闯关成绩与逐题详情</View>
+            </View>
+            <Text className='m-arrow'>›</Text>
+          </View>
+          <View
+            className='menu-item'
+            onClick={() => Taro.navigateTo({ url: '/pages/records/index?tab=wrong' })}
+          >
+            <View className='m-icon wrong' />
+            <View className='m-main'>
+              <View className='m-title'>错题本</View>
+              <View className='m-sub'>错题重练，巩固薄弱点</View>
+            </View>
+            <Text className='m-arrow'>›</Text>
+          </View>
+        </View>
+
         <View className='logout' onClick={doLogout}>
           退出登录
         </View>

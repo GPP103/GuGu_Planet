@@ -5,7 +5,8 @@ import Mascot from '../../components/Mascot'
 import TabBar from '../../components/TabBar'
 import { getHistory, getWrongList, removeWrong } from '../../utils/api'
 import { ensureLogin } from '../../utils/auth'
-import type { HistoryItem, WrongItem } from '../../types'
+import { saveQuiz } from '../../utils/store'
+import type { HistoryItem, Question, QuestionType, Quiz, WrongItem } from '../../types'
 import './index.scss'
 
 const TYPE_LABEL: Record<string, string> = {
@@ -42,8 +43,47 @@ export default function RecordsPage() {
   }
 
   useEffect(() => {
+    const params = Taro.getCurrentInstance().router?.params
+    if (params?.tab === 'wrong') setTab('wrong')
     load()
   }, [])
+
+  const retryWrong = () => {
+    if (wrong.length === 0) return
+    const picked = wrong.slice(0, 10)
+    const questions: Question[] = picked.map((w, i) => {
+      const type: QuestionType =
+        w.type === 'multiple' || w.type === 'judge' || w.type === 'single'
+          ? w.type
+          : w.options.length === 2
+            ? 'judge'
+            : w.answer.length > 1
+              ? 'multiple'
+              : 'single'
+      return {
+        id: `w_${w.id}_${i}`,
+        type,
+        stem: w.stem,
+        options: w.options,
+        answer: w.answer,
+        explanation: w.explanation,
+        knowledge_point: w.knowledge_point || '',
+        difficulty: 'medium'
+      }
+    })
+    const quiz: Quiz = {
+      quiz_id: `retry_${Date.now()}`,
+      title: `错题重练 · ${picked[0].topic || '综合'}`,
+      summary: `共 ${questions.length} 道错题，再来一次巩固`,
+      source_type: 'wrong',
+      user_input: '错题重练',
+      questions,
+      sources: [],
+      freshness: 'stale'
+    }
+    saveQuiz(quiz)
+    Taro.redirectTo({ url: '/pages/quiz/index' })
+  }
 
   const doRemoveWrong = async (id: number) => {
     try {
@@ -179,8 +219,16 @@ export default function RecordsPage() {
               <View className='empty-s'>答错的题会自动收进错题本</View>
             </View>
           ) : (
-            <View className='list'>
-              {wrong.map((w) => (
+            <>
+              <View className='retry-bar glass' onClick={retryWrong}>
+                <View className='retry-main'>
+                  <View className='retry-t'>错题重练</View>
+                  <View className='retry-s'>把这 {Math.min(wrong.length, 10)} 道错题再来一遍</View>
+                </View>
+                <View className='retry-btn'>开始</View>
+              </View>
+              <View className='list'>
+                {wrong.map((w) => (
                 <View key={w.id} className='wrong-item glass'>
                   <View className='wrong-head'>
                     <Text className='wtype'>{TYPE_LABEL[w.type] || '题目'}</Text>
@@ -205,8 +253,9 @@ export default function RecordsPage() {
                     移出错题本
                   </View>
                 </View>
-              ))}
-            </View>
+                ))}
+              </View>
+            </>
           ))}
       </View>
       <TabBar active='records' />

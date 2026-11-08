@@ -12,14 +12,14 @@ AI 智能题库生成与知识问答系统是一个 AI 驱动的闯关学习小�
 
 <table>
   <tr>
-    <td align="center" width="33%"><img src="docs/screenshots/home.jpg" height="360" /><br/><sub><b>首页 · 输入任意知识出题</b></sub></td>
-    <td align="center" width="33%"><img src="docs/screenshots/quiz.jpg" height="360" /><br/><sub><b>闯关答题 · 单选 / 多选 / 判断</b></sub></td>
-    <td align="center" width="33%"><img src="docs/screenshots/report.jpg" height="360" /><br/><sub><b>复盘报告 · 正确率与总结</b></sub></td>
+    <td align="center" width="33%"><img src="docs/screenshots/home.jpg" width="210" /><br/><sub><b>首页 · 输入任意知识出题</b></sub></td>
+    <td align="center" width="33%"><img src="docs/screenshots/quiz.jpg" width="210" /><br/><sub><b>闯关答题 · 单选 / 多选 / 判断</b></sub></td>
+    <td align="center" width="33%"><img src="docs/screenshots/report.jpg" width="210" /><br/><sub><b>复盘报告 · 正确率与总结</b></sub></td>
   </tr>
   <tr>
-    <td align="center" width="33%"><img src="docs/screenshots/poster.jpg" height="360" /><br/><sub><b>分享海报 · 可保存到相册</b></sub></td>
-    <td align="center" width="33%"><img src="docs/screenshots/profile.jpg" height="360" /><br/><sub><b>我的 · 统计与主题关卡</b></sub></td>
-    <td align="center" width="33%"><img src="docs/screenshots/records.jpg" height="360" /><br/><sub><b>记录 · 错题本与重练</b></sub></td>
+    <td align="center" width="33%"><img src="docs/screenshots/poster.jpg" width="210" /><br/><sub><b>分享海报 · 可保存到相册</b></sub></td>
+    <td align="center" width="33%"><img src="docs/screenshots/profile.jpg" width="210" /><br/><sub><b>我的 · 统计与主题关卡</b></sub></td>
+    <td align="center" width="33%"><img src="docs/screenshots/records.jpg" width="210" /><br/><sub><b>记录 · 错题本与重练</b></sub></td>
   </tr>
 </table>
 

@@ -8,6 +8,23 @@ AI 智能题库生成与知识问答系统是一个 AI 驱动的闯关学习小�
 
 技术上前后端分离：Taro 4 + React 18 一套代码同时输出微信小程序与 H5；FastAPI + SQLAlchemy + MySQL 提供接口，DeepSeek 负责出题与报告，qwen 系列模型负责 embedding 与生图，Chroma 做向量检索，图片存腾讯云 COS。后端 129 个测试用例覆盖核心链路。
 
+## 界面预览
+
+<table>
+  <tr>
+    <td align="center"><img src="docs/screenshots/home.png" width="250" /><br/><sub><b>首页 · 输入任意知识出题</b></sub></td>
+    <td align="center"><img src="docs/screenshots/quiz.png" width="250" /><br/><sub><b>闯关答题 · 单选 / 多选 / 判断</b></sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/screenshots/report.png" width="250" /><br/><sub><b>复盘报告 · 正确率与三句总结</b></sub></td>
+    <td align="center"><img src="docs/screenshots/poster.png" width="250" /><br/><sub><b>分享海报 · 可保存到相册</b></sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/screenshots/profile.png" width="250" /><br/><sub><b>我的 · 学习统计与主题关卡</b></sub></td>
+    <td align="center"><img src="docs/screenshots/records.png" width="250" /><br/><sub><b>记录 · 错题本与错题重练</b></sub></td>
+  </tr>
+</table>
+
 ## 技术栈
 
 | 层 | 技术 |
@@ -38,6 +55,7 @@ backend/          FastAPI 服务
 frontend/         Taro 小程序 / H5
   src/pages/{index,quiz,report,records,profile,knowledge}
 openspec/         规格驱动的变更记录
+docs/screenshots/ 界面截图
 原型图-核心流程.html
 需求分析文档.md / 方案设计文档.md
 ```

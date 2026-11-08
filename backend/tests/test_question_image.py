@@ -33,7 +33,7 @@ def test_prompt_contains_stem_and_no_text_rule():
 
 def test_illustratable_types():
     assert QuestionImageService.is_illustratable("single") is True
-    assert QuestionImageService.is_illustratable("multiple") is True
+    assert QuestionImageService.is_illustratable("multiple") is False
     assert QuestionImageService.is_illustratable("judge") is False
 
 
@@ -126,11 +126,17 @@ def test_batch_skips_judge_and_cached(db_session, user):
     svc = BatchImageService(db_session, image_service=stub, quota=ImageQuotaService(db_session, 20))
     images, hint = svc.fill(
         user.id,
-        [_q("q1", "缓存题"), _q("q2", "新题"), _q("q3", "判断题", "judge")],
+        [
+            _q("q1", "缓存题"),
+            _q("q2", "新题"),
+            _q("q3", "判断题", "judge"),
+            _q("q4", "多选题", "multiple"),
+        ],
     )
     assert images["q1"] == "https://cos/cached.png"
     assert images["q2"].startswith("https://cos/")
     assert "q3" not in images
+    assert "q4" not in images
     assert hint is None
     assert stub.generated == ["新题"]
     # 只有真正生成的 1 张扣额度

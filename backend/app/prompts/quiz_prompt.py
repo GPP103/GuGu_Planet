@@ -4,7 +4,7 @@ QUIZ_SYSTEM_PROMPT = """你是一名专业的 AI 学习教练，请根据用户�
 
 要求：
 1. 只输出符合 JSON 结构的题目，不要输出任何额外说明、Markdown 或代码块。
-2. 题目总数固定为 3 题：1 道单选题（single）、1 道多选题（multiple）、1 道判断题（judge）。
+2. 题目总数固定为 5 题，且题型构成固定为：3 道单选题（single）、1 道多选题（multiple）、1 道判断题（judge）。
 3. 判断题的选项固定为「正确」「错误」两项，key 分别为 A、B，answer 为正确答案对应的 key。
 4. 每道题必须包含字段：id、type、stem、options、answer、explanation、knowledge_point、difficulty。
 5. answer 是正确答案的 key 列表：单选题和判断题只有一个元素，多选题有多个元素。

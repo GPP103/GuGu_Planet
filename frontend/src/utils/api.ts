@@ -38,7 +38,7 @@ function unwrap<T>(body: ApiResponse<T>): T {
 export function generateQuiz(userInput: string, knowledgeBaseId?: number, withImages?: boolean): Promise<Quiz> {
   return request<Quiz>('/api/v1/quiz/generate', 'POST', {
     user_input: userInput,
-    question_count: 3,
+    question_count: 5,
     difficulty: 'mixed',
     ...(knowledgeBaseId != null ? { knowledge_base_id: knowledgeBaseId } : {}),
     ...(withImages ? { with_images: true } : {})

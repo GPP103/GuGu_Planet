@@ -14,8 +14,8 @@ from app.core.config import settings
 from app.core.exceptions import ImageGenerationError
 from app.services.image_storage import get_question_image_storage
 
-# 只有这些题型值得配图
-ILLUSTRATABLE_TYPES = {"single", "multiple"}
+# 只有单选题配图：多选、判断题生图性价比低（判断题几乎无可视化价值）
+ILLUSTRATABLE_TYPES = {"single"}
 
 QUESTION_PROMPT_TEMPLATE = (
     "为一道学习题目生成一张配图，用来帮助记忆。"

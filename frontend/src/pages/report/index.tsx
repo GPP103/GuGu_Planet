@@ -225,10 +225,6 @@ export default function ReportPage() {
             ‹
           </View>
           <View className='stage-t'>远征报告</View>
-          <View className='coin'>
-            <View className='c' />
-            +50
-          </View>
         </View>
 
         <View className='ring-wrap'>

@@ -65,23 +65,6 @@
   }
 }
 
-.coin {
-  display: flex;
-  align-items: center;
-  gap: 8rpx;
-  font-size: 24rpx;
-  font-weight: 600;
-  color: #f5c26b;
-  font-variant-numeric: tabular-nums;
-
-  .c {
-    width: 28rpx;
-    height: 28rpx;
-    border-radius: 50%;
-    background: radial-gradient(circle at 32% 30%, #ffe9bd, #f5c26b 60%, #c88a2a);
-    box-shadow: 0 0 16rpx rgba(245, 194, 107, 0.6);
-  }
-}
 
 .ring-wrap {
   display: flex;

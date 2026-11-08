@@ -5,7 +5,7 @@ import Mascot from '../../components/Mascot'
 import { generateReport, getQuizImages, submitRecord } from '../../utils/api'
 import { ensureLogin } from '../../utils/auth'
 import { getQuiz, saveQuiz, saveReport } from '../../utils/store'
-import type { AnswerRecord, Question, Quiz, UserProfile } from '../../types'
+import type { AnswerRecord, Question, Quiz } from '../../types'
 import './index.scss'
 
 const TYPE_LABEL: Record<string, string> = {
@@ -26,7 +26,6 @@ export default function QuizPage() {
   const [answered, setAnswered] = useState(false)
   const [answers, setAnswers] = useState<Record<string, { selected: string[]; answered: boolean }>>({})
   const [submitting, setSubmitting] = useState(false)
-  const [user, setUser] = useState<UserProfile | null>(null)
   const [imgMap, setImgMap] = useState<Record<string, string>>({})
   const recordsRef = useRef<AnswerRecord[]>([])
   const startRef = useRef(0)
@@ -77,17 +76,9 @@ export default function QuizPage() {
     return stop
   }, [])
 
-  useEffect(() => {
-    ensureLogin().then((u) => u && setUser(u)).catch(() => null)
-  }, [])
-
   const question: Question | undefined = quiz?.questions[idx]
   const total = quiz?.questions.length || 0
   const isCorrect = answered && sameAnswer(selected, question?.answer || [])
-  const xp = user?.xp ?? 0
-  const level = user?.level ?? 1
-  const nextLevelXp = user?.next_level_xp ?? 50
-  const xpProgress = nextLevelXp > 0 ? Math.min(100, Math.round((xp / nextLevelXp) * 100)) : 0
 
   const submit = (sel: string[]) => {
     if (!question) return
@@ -230,16 +221,6 @@ export default function QuizPage() {
             <Text className='src-tip'>基于模型知识生成，建议输入最新资料</Text>
           </View>
         )}
-
-        <View className='xp-wrap'>
-          <View className='xp-row'>
-            <Text>远征经验</Text>
-            <Text>LV.{level} · {xp} / {nextLevelXp}</Text>
-          </View>
-          <View className='xp-bar'>
-            <View className='xp-fill' style={{ width: `${xpProgress}%` }} />
-          </View>
-        </View>
 
         <View className='orbit'>
           {Array.from({ length: total }).map((_, i) => (

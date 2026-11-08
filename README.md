@@ -39,7 +39,7 @@ frontend/         Taro 小程序 / H5
   src/pages/{index,quiz,report,records,profile,knowledge}
 openspec/         规格驱动的变更记录
 原型图-核心流程.html
-项目记忆文档.md    需求、决策、踩坑全记录
+需求分析文档.md / 方案设计文档.md
 ```
 
 ## 本地运行

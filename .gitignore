@@ -22,3 +22,9 @@ dist-h5/
 
 # 后端运行时数据（向量库等）
 backend/data/
+
+# 本地文档与工具产物（不入库）
+项目记忆文档.md
+overview.md
+存档-v1-深空版.html
+.claude/

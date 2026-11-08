@@ -176,7 +176,7 @@ export default function ReportPage() {
     ctx.setFillStyle('#c9c3e8')
     ctx.setFontSize(10)
     ctx.fillText('咕咕带你点亮知识', pad + 12, boxY + 20)
-    ctx.setFillStyle('#6f679a')
+    ctx.setFillStyle('#9a93bd')
     ctx.setFontSize(9)
     ctx.fillText('万物皆可闯关 · 在星海里点亮知识', pad + 12, boxY + 34)
 
@@ -255,6 +255,11 @@ export default function ReportPage() {
           ))}
         </View>
 
+        <View className='quote'>
+          {report.share_quote}
+          <View className='q'>— 今日学习金句</View>
+        </View>
+
         <View className='sec-title'>掌握 / 薄弱</View>
         <View className='pill-row'>
           {report.mastered_points.map((p, i) => (
@@ -272,11 +277,6 @@ export default function ReportPage() {
         <View className='sec-title'>复习建议</View>
         <View className='explain glass'>
           <Text className='p'>{report.advice.join(' ')}</Text>
-        </View>
-
-        <View className='quote'>
-          {report.share_quote}
-          <View className='q'>— 今日学习金句</View>
         </View>
 
         <View className='next' onClick={() => setPosterOpen(true)}>

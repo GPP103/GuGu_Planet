@@ -276,7 +276,6 @@ export default function QuizPage() {
             <View className={`feedback ${isCorrect ? 'ok' : 'no'}`}>
               <View className='ic'>{isCorrect ? '✓' : '✕'}</View>
               <Text className='txt'>{isCorrect ? '答对了！' : '答错了'}</Text>
-              {isCorrect && <Text className='xp'>+10 XP</Text>}
             </View>
             <View className='explain glass'>
               <View className='h'>
